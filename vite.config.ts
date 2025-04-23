@@ -5,6 +5,15 @@ import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+    server: {
+        host: '0.0.0.0', // Listen on all network interfaces
+        hmr: {
+            host: 'localhost', // HMR connection from within Docker
+        },
+        watch: {
+            usePolling: true, // Use polling for file changes in Docker
+        },
+    },
     plugins: [
         laravel({
             input: ['resources/css/app.css', 'resources/js/app.tsx'],

@@ -1,0 +1,86 @@
+services:
+  app:
+    container_name: app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ai-fun
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "80:8080"
+      - "443:8443"
+    environment:
+      IGNITION_LOCAL_SITES_PATH: "${PWD}"
+      DOTNET_EnableWriteXorExecute: 0
+      PHP_OPCACHE_ENABLE: 1
+      PHP_OPCACHE_VALIDATE_TIMESTAMPS: 0
+      PHP_OPCACHE_REVALIDATE_FREQ: 0
+      PHP_OPCACHE_MAX_ACCELERATED_FILES: 32531
+      PHP_OPCACHE_INTERNED_STRINGS_BUFFER: 64
+      PHP_OPCACHE_MEMORY_CONSUMPTION: 512
+      PHP_FPM_POOL_NAME: "ai-fun_php"
+    #   SSL_MODE: "mixed"
+    #   SSL_PRIVATE_KEY_FILE: "/etc/ssl/private/sreportal.test-key.pem"
+    #   SSL_CERTIFICATE_FILE: "/etc/ssl/private/sreportal.test.pem"
+    volumes:
+      - ".:/var/www/html/"
+    #   - "./opt/certs/:/etc/ssl/private/"
+
+    networks:
+      - app
+    depends_on:
+      - vite
+      - pgsql
+      - redis
+
+  vite:
+    container_name: vite
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ai-fun
+    environment:
+      NODE_ENV: local
+    working_dir: /var/www/html/
+    command: npm run dev
+    volumes:
+      - ".:/var/www/html/:cached"
+    ports:
+      - "5173:5173"
+    networks:
+      - app
+
+  pgsql:
+    container_name: pgsql
+    image: postgres:17
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ai-fun
+    volumes:
+      - pgsql_data:/var/lib/pgsql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - app
+
+  redis:
+    container_name: redis
+    image: redis:latest
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - app
+    volumes:
+        - redis_data:/data
+
+networks:
+  app:
+    driver: bridge
+
+volumes:
+  pgsql_data:
+  redis_data:
