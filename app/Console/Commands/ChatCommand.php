@@ -36,12 +36,12 @@ class ChatCommand extends Command
     protected function prismFactory()
     {
         return Prism::text()
+            ->using(Provider::Gemini, 'gemini-2.0-flash')
+            ->withSystemPrompt(view('prompts.nova'))
             ->withTools([
                 new SearchTool(),
             ])
-            ->withSystemPrompt(view('prompts.nova'))
-            ->withMaxSteps(5)
-            ->using(Provider::Gemini, 'gemini-2.0-flash');
+            ->withMaxSteps(5);
     }
 
     protected function chat($prism): void  {
@@ -49,16 +49,41 @@ class ChatCommand extends Command
         $this->messages->push(new UserMessage($message));
 
         try {
-            $answer = $prism->withMessages($this->messages->toArray())->asText();
+            $answer = $prism->withMessages($this->messages->toArray())->asStream();//asText();
         } catch (PrismException $e) {
             dd('Text generation failed:', ['error' => $e->getMessage()]);
         } catch (Throwable $e) {
             dd('Generic error:', ['error' => $e->getMessage()]);
         }
 
-        $this->messages->push(new AssistantMessage($answer->text));
+        $fullResponse = '';
+        foreach ($answer as $chunk) {
+            // Append each chunk to build the complete response
+            $fullResponse .= $chunk->text;
 
-        $this->box('Response', wordwrap($answer->text, 60), color: 'magenta');
+            // Check for tool calls
+            if ($chunk->toolCalls) {
+                foreach ($chunk->toolCalls as $call) {
+                    $body = '';
+                    foreach ($call->arguments() as $key => $value) {
+                        $key = ucwords($key);
+                        $body .= "$key: $value\n";
+                    }
+                    $this->box(ucwords($call->name), wordwrap($body, 60), color: 'blue');
+                }
+            }
+
+            // // Check for tool results
+            // if ($chunk->toolResults) {
+            //     foreach ($chunk->toolResults as $result) {
+            //         $this->box('Tool', wordwrap($result->result, 60), color: 'blue');
+            //     }
+            // }
+        }
+
+        $this->messages->push(new AssistantMessage($fullResponse));
+
+        $this->box('Response', wordwrap($fullResponse, 60), color: 'magenta');
     }
 
     public function handle(): void
