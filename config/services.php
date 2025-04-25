@@ -41,4 +41,8 @@ return [
         'redirect_url' => env('WORKOS_REDIRECT_URL'),
     ],
 
+    'serpapi' => [
+        'key' => env('SERPAPI_API_KEY'),
+    ]
+
 ];

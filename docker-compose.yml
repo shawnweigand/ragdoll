@@ -30,30 +30,30 @@ services:
     networks:
       - app
     depends_on:
-      - vite
+    #   - vite
       - pgsql
-      - redis
+    #   - redis
 
-  vite:
-    container_name: vite
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: ai-fun
-    environment:
-      NODE_ENV: local
-    working_dir: /var/www/html/
-    command: npm run dev
-    volumes:
-      - ".:/var/www/html/:cached"
-    ports:
-      - "5173:5173"
-    networks:
-      - app
+#   vite:
+#     container_name: vite
+#     build:
+#       context: .
+#       dockerfile: Dockerfile
+#     image: ai-fun
+#     environment:
+#       NODE_ENV: local
+#     working_dir: /var/www/html/
+#     command: npm run dev
+#     volumes:
+#       - ".:/var/www/html/:cached"
+#     ports:
+#       - "5173:5173"
+#     networks:
+#       - app
 
   pgsql:
     container_name: pgsql
-    image: postgres:17
+    image: ankane/pgvector:latest
     restart: always
     environment:
       POSTGRES_USER: root
@@ -66,16 +66,16 @@ services:
     networks:
       - app
 
-  redis:
-    container_name: redis
-    image: redis:latest
-    restart: always
-    ports:
-      - "6379:6379"
-    networks:
-      - app
-    volumes:
-        - redis_data:/data
+#   redis:
+#     container_name: redis
+#     image: redis:latest
+#     restart: always
+#     ports:
+#       - "6379:6379"
+#     networks:
+#       - app
+#     volumes:
+#         - redis_data:/data
 
 networks:
   app:
@@ -83,4 +83,4 @@ networks:
 
 volumes:
   pgsql_data:
-  redis_data:
+#   redis_data:
