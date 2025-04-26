@@ -43,6 +43,12 @@ return [
 
     'serpapi' => [
         'key' => env('SERPAPI_API_KEY'),
+    ],
+
+    'trello' => [
+        'key' => env('TRELLO_API_KEY'),
+        'token' => env('TRELLO_API_TOKEN'),
+        'board_id' => env('TRELLO_BOARD_ID'),
     ]
 
 ];
