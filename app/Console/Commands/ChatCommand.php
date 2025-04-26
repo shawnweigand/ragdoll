@@ -2,7 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Tools\SearchTool;
+use App\Tools\Serper\SerperSearchTool;
+use App\Tools\Trello\TrelloSearchTool;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Laravel\Prompts\Concerns\Colors;
@@ -37,9 +38,10 @@ class ChatCommand extends Command
     {
         return Prism::text()
             ->using(Provider::Gemini, 'gemini-2.0-flash')
-            ->withSystemPrompt(view('prompts.nova'))
+            ->withSystemPrompt(view('prompts.personas.nova'))
             ->withTools([
-                new SearchTool(),
+                new SerperSearchTool(),
+                new TrelloSearchTool(),
             ])
             ->withMaxSteps(5);
     }

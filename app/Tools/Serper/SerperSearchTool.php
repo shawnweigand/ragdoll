@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Tools;
+namespace App\Tools\Serper;
 
 use Illuminate\Support\Facades\Http;
 use Prism\Prism\Tool;
 
-class SearchTool extends Tool
+class SerperSearchTool extends Tool
 {
     public function __construct()
     {
@@ -36,7 +36,7 @@ class SearchTool extends Tool
             ];
         })->take(4);
 
-        return view('prompts.search-tool-results', [
+        return view('prompts.serper.serper-search-tool-results', [
             'results' => $results
         ])->render();
     }
