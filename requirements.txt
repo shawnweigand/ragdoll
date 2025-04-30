@@ -13,7 +13,7 @@ dataclasses-json==0.6.7
 Flask==3.1.0
 frozenlist==1.6.0
 google-api-core==2.24.2
-google-api-python-client==2.168.0
+google-api-python-client==2.169.0
 google-auth==2.39.0
 google-auth-httplib2==0.2.0
 google-auth-oauthlib==1.2.2
@@ -36,6 +36,7 @@ langchain==0.3.24
 langchain-community==0.3.22
 langchain-core==0.3.56
 langchain-google-community==2.0.7
+langchain-googledrive==0.3.35
 langchain-text-splitters==0.3.8
 langsmith==0.3.37
 MarkupSafe==3.0.2
