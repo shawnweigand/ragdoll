@@ -3,7 +3,7 @@ DOCKER_COMPOSE = docker-compose
 APP_CONTAINER = app  # Change this to the name of your app container
 SHELL_COMMAND = /bin/bash  # Or /bin/sh, depending on your container
 
-.PHONY: up exec run install secrets setup
+.PHONY: up exec run install
 
 # Bring up the Docker Compose services
 up:
