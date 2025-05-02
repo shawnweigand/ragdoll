@@ -8,3 +8,9 @@ Route::get('/user', function (Request $request) {
         'user' => 'johnny test'
     ];
 });
+
+Route::post('/chunk', function (Request $request) {
+    return [
+        'request' => $request->all(),
+    ];
+});
