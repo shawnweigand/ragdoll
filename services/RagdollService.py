@@ -6,7 +6,7 @@ load_dotenv()
 
 class RagdollService:
     def __init__(self):
-        self.base_url = 'localhost:80/api'
+        self.base_url = 'http://app:8080/api'
         self.app_token = os.getenv('RAGDOLL_APP_TOKEN')
         self.headers = {
             'APP-TOKEN': self.app_token
@@ -23,6 +23,7 @@ class RagdollService:
     #         return None
 
     def sendChunk(self, data=None):
+        # move to test script.py
         url = f"{self.base_url}/chunk"
         try:
             response = requests.post(url, json=data, headers=self.headers)
