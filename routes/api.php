@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Document;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -10,7 +11,34 @@ Route::get('/user', function (Request $request) {
 });
 
 Route::post('/chunk', function (Request $request) {
+    $document = Document::updateOrCreate(
+        // Find by source_id and type
+        [
+            'source_id' => $request->input('source_id'),
+            'type' => $request->input('type'),
+        ],
+        // Update or set these values
+        [
+            'name' => $request->input('name'),
+            'parent_id' => $request->input('parent_id'),
+        ]
+    );
+
+    # Find a way to update or create chunks for the docs if they change, and remove all old ones
+    $chunk = $document->chunks()->create(
+        [
+            'content' => $request->input('content'),
+        ]
+    );
+    // $chunk = $document->chunks()->updateOrCreate(
+    //     [
+    //         'index' => $request->input('index'),
+    //     ],
+    //     [
+    //         'content' => $request->input('content'),
+    //     ]
+    // );
     return [
-        'request' => $request->all(),
+        'request' => $chunk,
     ];
 });

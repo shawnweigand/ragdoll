@@ -14,8 +14,9 @@ return new class extends Migration
         Schema::create('documents', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('source_id');
+            $table->string('source_id')->unique();
             $table->string('type');
+            $table->string('parent_id')->nullable();
             $table->string('category')->nullable();
             $table->boolean('is_outdated')->default(false); // status: true = outdated
             $table->timestamps();

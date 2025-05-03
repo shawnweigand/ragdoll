@@ -28,7 +28,7 @@ services:
     #   - "./opt/certs/:/etc/ssl/private/"
 
     networks:
-      - app
+      - ragdoll
     depends_on:
     #   - vite
       - pgsql
@@ -64,7 +64,7 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - app
+      - ragdoll
 
 #   redis:
 #     container_name: redis
@@ -78,8 +78,8 @@ services:
 #         - redis_data:/data
 
 networks:
-  app:
-    driver: bridge
+  ragdoll:
+    name: ragdoll
 
 volumes:
   pgsql_data:
