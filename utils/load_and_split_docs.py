@@ -18,40 +18,43 @@ def load_and_split_docs(
         load_params (dict): Parameters for the loading function.
         split_fn (callable): Function to split documents.
     """
-
+    
+    # Load documents
     try:
-        # Load documents
         docs = load_fn(*load_params)
     except Exception as e:
         with (open("error.log", "a")) as f:
             f.write(f"Error loading documents: {e}\n")
         return
 
-    # move for loop here to send in doc batched with chunk index. If any chunk indexes are different, delete all doc chunks after it and create new ones
-    
-    try:
-        # Split documents
-        texts = split_fn(docs)
-    except Exception as e:
-        with (open("error.log", "a")) as f:
-            f.write(f"Error splitting documents: {e}\n")
-        return
-
-    # Send to ragdoll service
     ragdoll = RagdollService()
-
-    for i, text in enumerate(texts):
-        data = {
-            "name": text.metadata.get("title", "unknown"),
-            "source_id": text.metadata.get("source").split("/d/")[1].split("/")[0],
-            "type": document_type,
-            "parent_id": document_id,
-            "content": text.page_content
-        }
+    
+    # Loop docs
+    for i, doc in enumerate(docs):
         try:
-            response = ragdoll.sendChunk(data)
-            with (open(f"outputs/output_{i}.log", "a")) as f:
-                f.write(f"Response from Ragdoll: {response}\n")
+            # Split doc into chunks
+            chunks = split_fn([doc])
         except Exception as e:
-            with (open(f"outputs/error_{i}.log", "a")) as f:
-                f.write(f"Error sending to Ragdoll: {e}\n")
+            with (open(".temp/errors/doc_{i}.log", "a")) as f:
+                f.write(f"Error splitting document: {e}\n")
+            continue
+        
+        # Loop chunks
+        for j, chunk in enumerate(chunks):
+            data = {
+                "name": chunk.metadata.get("title", "unknown"),
+                "source_id": chunk.metadata.get("source").split("/d/")[1].split("/")[0],
+                "type": document_type,
+                "parent_id": document_id,
+                "content": chunk.page_content,
+                "index": j
+            }
+            # Send to ragdoll service
+            try:
+                response = ragdoll.sendChunk(data)
+                with (open(f".temp/outputs/chunk_{i}_{j}.log", "a")) as f:
+                    f.write(f"Response from Ragdoll: {response}\n")
+            except Exception as e:
+                with (open(f"/temp/errors/error_{i}_{j}.log", "a")) as f:
+                    f.write(f"Error sending to Ragdoll: {e}\n")
+                continue
