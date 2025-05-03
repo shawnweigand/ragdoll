@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Chunk extends Model
 {
-    protected $fillable = ['document_id', 'content'];
+    protected $fillable = ['document_id', 'content', 'index'];
 
     public function document(): BelongsTo
     {

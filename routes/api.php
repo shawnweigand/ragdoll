@@ -25,19 +25,22 @@ Route::post('/chunk', function (Request $request) {
     );
 
     # Find a way to update or create chunks for the docs if they change, and remove all old ones
-    $chunk = $document->chunks()->create(
+    $chunk = $document->chunks()->updateOrCreate(
+        [
+            'index' => $request->input('index'),
+        ],
         [
             'content' => $request->input('content'),
         ]
     );
-    // $chunk = $document->chunks()->updateOrCreate(
-    //     [
-    //         'index' => $request->input('index'),
-    //     ],
-    //     [
-    //         'content' => $request->input('content'),
-    //     ]
-    // );
+
+    // remove all the chunks after this index if the chunk was updated
+    if ($chunk->wasChanged('content')) {
+        $document->chunks()
+            ->where('index', '>', $chunk->index)
+            ->delete();
+    }
+
     return [
         'request' => $chunk,
     ];

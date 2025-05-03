@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('document_id')->constrained()->onDelete('cascade');
             $table->text('content');
+            $table->integer('index');
             $table->timestamps();
         });
     }
