@@ -12,7 +12,7 @@ load_dotenv()
 app = Flask(__name__)
 
 # Google Drive folder
-@app.route('/api/drive/folder/<folder_id>', methods=['POST']) # folder_id="1wvLgaZsQJs0RUWTIUvZ3-xxQQVY5fIsc"
+@app.route('/api/drive/folder/<folder_id>', methods=['POST'])
 def parse_drive_folder_docs(folder_id: str):
     """
     Parse documents from a Google Drive folder.
