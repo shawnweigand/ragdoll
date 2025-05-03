@@ -26,6 +26,8 @@ def load_and_split_docs(
         with (open("error.log", "a")) as f:
             f.write(f"Error loading documents: {e}\n")
         return
+
+    # move for loop here to send in doc batched with chunk index. If any chunk indexes are different, delete all doc chunks after it and create new ones
     
     try:
         # Split documents
