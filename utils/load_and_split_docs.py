@@ -2,21 +2,23 @@ from services.RagdollService import RagdollService
 import json
 
 def load_and_split_docs(
-        document_id,
+        parent_id,
         document_type,
         load_fn, 
         load_params, 
-        split_fn
+        split_fn,
+        extract_fn
     ):
     """
     Load and split documents using the provided functions and parameters.
     
     Args:
-        document_id (str): The source ID of the document to load.
+        parent_id (str): The source ID of the document to load's parent.
         document_type (str): The type of the document (e.g., GoogleDrive).
         load_fn (callable): Function to load documents.
         load_params (dict): Parameters for the loading function.
         split_fn (callable): Function to split documents.
+        extract_fn (callable): Function to extract data from chunks.
     """
     
     # Load documents
@@ -41,16 +43,17 @@ def load_and_split_docs(
         
         # Loop chunks
         for j, chunk in enumerate(chunks):
+            # Set initial data
             data = {
-                "name": chunk.metadata.get("title", "unknown"),
-                "source": chunk.metadata.get("source"),
+                "parent_id": parent_id,
                 "type": document_type,
-                "parent_id": document_id,
-                "content": chunk.page_content,
                 "index": j
             }
-            # Send to ragdoll service
             try:
+                # Update data with chunk information
+                extracted_data = extract_fn(chunk)
+                data.update(extracted_data)
+                # Send to ragdoll service
                 response = ragdoll.sendChunk(data)
                 with (open(f".temp/outputs/chunk_{i}_{j}.log", "a")) as f:
                     f.write(f"Response from Ragdoll: {response}\n")
