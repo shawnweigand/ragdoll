@@ -43,7 +43,7 @@ def load_and_split_docs(
         for j, chunk in enumerate(chunks):
             data = {
                 "name": chunk.metadata.get("title", "unknown"),
-                "source_id": chunk.metadata.get("source").split("/d/")[1].split("/")[0],
+                "source": chunk.metadata.get("source"),
                 "type": document_type,
                 "parent_id": document_id,
                 "content": chunk.page_content,
