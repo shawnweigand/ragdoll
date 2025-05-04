@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Tools\Embeddings\SimilaritySearchTool;
 use App\Tools\Serper\SerperSearchTool;
 use App\Tools\Trello\TrelloSearchTool;
 use Illuminate\Console\Command;
@@ -42,6 +43,7 @@ class ChatCommand extends Command
             ->withTools([
                 new SerperSearchTool(),
                 new TrelloSearchTool(),
+                new SimilaritySearchTool(),
             ])
             ->withMaxSteps(5);
     }
@@ -68,10 +70,10 @@ class ChatCommand extends Command
                 foreach ($chunk->toolCalls as $call) {
                     $body = '';
                     foreach ($call->arguments() as $key => $value) {
-                        $key = ucwords($key);
+                        $key = $key;
                         $body .= "$key: $value\n";
                     }
-                    $this->box(ucwords($call->name), wordwrap($body, 60), color: 'blue');
+                    $this->box($call->name, wordwrap($body, 60), color: 'blue');
                 }
             }
 

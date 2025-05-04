@@ -14,7 +14,7 @@ Route::post('/chunk', function (Request $request) {
     $document = Document::updateOrCreate(
         // Find by source_id and type
         [
-            'source_id' => $request->input('source_id'),
+            'source' => $request->input('source'),
             'type' => $request->input('type'),
         ],
         // Update or set these values

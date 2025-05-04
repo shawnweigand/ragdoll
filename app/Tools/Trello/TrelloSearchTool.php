@@ -12,8 +12,8 @@ class TrelloSearchTool extends Tool
     public function __construct()
     {
         $this->trello = new TrelloService();
-        $this->as('trello')
-            ->for('useful when you need to search for cards on a trello board')
+        $this->as('Trello')
+            ->for('useful when you need to search for cards on a trello board relating to work I have to do.')
             ->withStringParameter('query', 'Detailed search query for trello cards. Best to search one word or phrase representing the trello card at a time. The query must appear in the trello card.')
             ->using($this);
     }
