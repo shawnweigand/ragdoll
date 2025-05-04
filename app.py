@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request
 from dotenv import load_dotenv
 from loaders.drive_loader import load_drive_folder_docs
 from splitters.recursive_splitter import split_recursive_docs
+from extractors.google_drive_extractor import google_drive_extractor
 from utils.load_and_split_docs import load_and_split_docs
 import threading
 
@@ -25,11 +26,12 @@ def parse_drive_folder_docs(folder_id: str):
     """
     # Load and split documents in a separate thread
     threading.Thread(target=load_and_split_docs, args=(
-        folder_id,
-        "GoogleDrive",
-        load_drive_folder_docs, 
-        [folder_id], 
-        split_recursive_docs
+        folder_id,              #Arg: parent_id
+        "GoogleDrive",          #Arg: document_type
+        load_drive_folder_docs, #Arg: load_fn
+        [folder_id],            #Arg: load_params
+        split_recursive_docs,   #Arg: split_fn
+        google_drive_extractor  #Arg: extract_fn
     )).start()
     
     return jsonify({"message": "Documents are being processed."})

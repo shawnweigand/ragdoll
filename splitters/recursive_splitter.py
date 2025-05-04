@@ -10,7 +10,7 @@ def split_recursive_docs(docs):
         docs (List[Document]): A list of documents to split.
 
     Returns:
-        List[Document]: A list of split documents.
+        List[Chunk]: A list of split documents.
     """
 
     # Initialize the text splitter
