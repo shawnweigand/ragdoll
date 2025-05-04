@@ -7,3 +7,10 @@ services:
       - .:/app
     env_file:
       - .env
+    networks:
+      - ragdoll
+
+networks:
+  ragdoll:
+    external: true
+    name: ragdoll
