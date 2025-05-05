@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Tools\Database\DocumentDatabaseTool;
+use App\Tools\Embeddings\DocumentSearchTool;
 use App\Tools\Embeddings\SimilaritySearchTool;
 use App\Tools\Serper\SerperSearchTool;
 use App\Tools\Trello\TrelloSearchTool;
@@ -44,6 +46,8 @@ class ChatCommand extends Command
                 new SerperSearchTool(),
                 new TrelloSearchTool(),
                 new SimilaritySearchTool(),
+                new DocumentSearchTool(),
+                new DocumentDatabaseTool(),
             ])
             ->withMaxSteps(5);
     }
