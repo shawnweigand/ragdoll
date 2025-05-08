@@ -13,7 +13,7 @@ def load_and_split_docs(
     Load and split documents using the provided functions and parameters.
     
     Args:
-        parent_id (str): The source ID of the document to load's parent.
+        parent_id (str | None): The source ID of the document to load's parent.
         document_type (str): The type of the document (e.g., GoogleDrive).
         load_fn (callable): Function to load documents.
         load_params (dict): Parameters for the loading function.
