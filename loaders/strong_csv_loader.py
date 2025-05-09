@@ -20,7 +20,7 @@ def load_strong_csv_docs(source: str):
         page_content=csv_text, 
         metadata={
             "source": source,
-            "title": source,
+            "title": source
         }
     )
     

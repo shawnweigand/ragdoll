@@ -1,6 +1,7 @@
 import csv
 from io import StringIO
 from collections import defaultdict
+from datetime import datetime
 
 def split_strong_csv_docs(docs):
     """
@@ -25,7 +26,10 @@ def split_strong_csv_docs(docs):
             key = (row['Date'], row['Workout Name'])
             grouped[key].append(row)
         
-        for (date, workout_name), rows in grouped.items():
+        for (date_raw, workout_name), rows in grouped.items():
+            dt = datetime.strptime(date_raw, "%Y-%m-%d %H:%M:%S")
+            readable_date = dt.strftime("%B %d, %Y at %I:%M %p")
+
             exercises = defaultdict(list)
 
             for row in rows:
@@ -36,7 +40,7 @@ def split_strong_csv_docs(docs):
                 line = f"   - Set {set_order}: {weight} lb x {reps} reps"
                 exercises[ex].append(line)
                 
-            text = f"Workout: {workout_name}\nDate: {date}\nDuration: {rows[0]['Duration']}\n\nExercises:\n"
+            text = f"Workout: {workout_name}\nDate: {readable_date}\nDuration: {rows[0]['Duration']}\n\nExercises:\n"
             for ex_name, sets in exercises.items():
                 text += f"{ex_name}\n" + "\n".join(sets) + "\n\n"
 
@@ -45,6 +49,7 @@ def split_strong_csv_docs(docs):
                 "metadata": {
                     "source": doc.metadata['source'],
                     "title": doc.metadata.get('title', ''),
+                    "when": readable_date
                 }
             })
     

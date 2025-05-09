@@ -34,6 +34,11 @@ def parse_drive_folder_docs(folder_id: str):
     Returns:
         str: A message indicating the status of the operation.
     """
+    # Extract meta and tags from the request
+    data = request.get_json()
+    meta = data.get("meta", [])
+    tags = data.get("tags", {})
+    
     # Load and split documents in a separate thread
     threading.Thread(target=load_and_split_docs, args=(
         folder_id,              #Arg: parent_id
@@ -41,7 +46,9 @@ def parse_drive_folder_docs(folder_id: str):
         load_drive_folder_docs, #Arg: load_fn
         [folder_id],            #Arg: load_params
         split_recursive_docs,   #Arg: split_fn
-        google_drive_extractor  #Arg: extract_fn
+        google_drive_extractor, #Arg: extract_fn
+        meta,                   #Arg: meta
+        tags                    #Arg: tags
     )).start()
     
     return jsonify({"message": "Documents are being processed."})
@@ -58,9 +65,16 @@ def parse_strong_docs(csv_name: str):
     Returns:
         str: A message indicating the status of the operation.
     """
+    # Extract meta and tags from the request
+    data = request.get_json()
+    meta = data.get("meta", [])
+    tags = data.get("tags", {})
+
+    # Check if the CSV file exists
     csv = f"{csv_name}.csv"
     if not os.path.exists(f".csv/{csv}"):
         return jsonify({"error": f"File {csv_name}.csv not found."}), 404
+
     # Load and split documents in a separate thread
     threading.Thread(target=load_and_split_docs, args=(
         None,                       #Arg: parent_id
@@ -68,7 +82,9 @@ def parse_strong_docs(csv_name: str):
         load_strong_csv_docs,       #Arg: load_fn
         [csv],                      #Arg: load_params
         split_strong_csv_docs,      #Arg: split_fn
-        strong_csv_extractor        #Arg: extract_fn
+        strong_csv_extractor,       #Arg: extract_fn
+        meta,                       #Arg: meta
+        tags                        #Arg: tags
     )).start()
     
     return jsonify({"message": "Documents are being processed."})

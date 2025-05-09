@@ -7,7 +7,9 @@ def load_and_split_docs(
         load_fn, 
         load_params, 
         split_fn,
-        extract_fn
+        extract_fn,
+        meta=[],
+        tags={}
     ):
     """
     Load and split documents using the provided functions and parameters.
@@ -47,11 +49,12 @@ def load_and_split_docs(
             data = {
                 "parent_id": parent_id,
                 "type": document_type,
-                "index": j
+                "index": j,
+                "tags": tags,
             }
             try:
                 # Update data with chunk information
-                extracted_data = extract_fn(chunk)
+                extracted_data = extract_fn(chunk, meta)
                 data.update(extracted_data)
                 # Send to ragdoll service
                 response = ragdoll.sendChunk(data)
