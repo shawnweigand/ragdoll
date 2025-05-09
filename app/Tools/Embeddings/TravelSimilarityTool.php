@@ -5,15 +5,13 @@ namespace App\Tools\Embeddings;
 use App\Models\Chunk;
 use Prism\Prism\Tool;
 
-class SimilaritySearchTool extends Tool
+class TravelSimilarityTool extends Tool
 {
     protected float $similarityThreshold = 0.3;
     protected int $maxResults = 5;
-    protected array $filters;
 
-    public function __construct(array $filters = [])
+    public function __construct()
     {
-        $this->filters = $filters;
         $this->as('Similarity')
             ->for('Useful when you need to search for things that are personal to the user that are not in the public domain. It revolves around searching their own documents. Determine that a document must be searched on your own. Confirmation is not required.')
             ->withStringParameter('q', 'Detailed search query. Best to search one topic at a time. Present in the form of a question. If not a question, convert to a question without prompting the user.')
@@ -22,14 +20,9 @@ class SimilaritySearchTool extends Tool
 
     public function __invoke(string $q): string
     {
-        $query = Chunk::search($q);
-
-        // Apply all filters
-        foreach ($this->filters as $column => $value) {
-            $query->where($column, $value);
-        }
-
-        $results = $query->get();
+        $results = Chunk::search($q)
+            ->where('tags->category', 'Travel')
+            ->get();
 
         $results = collect($results
             ->filter(function ($result) {

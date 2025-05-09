@@ -10,7 +10,7 @@ class SerperSearchTool extends Tool
     public function __construct()
     {
         $this->as('Search')
-            ->for('useful when you need to search for current events')
+            ->for('useful when you need to search the internet for current events')
             ->withStringParameter('query', 'Detailed search query. Best to search one topic at a time.')
             ->using($this);
     }
