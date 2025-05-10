@@ -1,9 +1,9 @@
-def google_drive_extractor(
+def strong_csv_extractor(
         chunk,
         meta=[]
     ):
     """
-    Extract data to be sent to Ragdoll service API body for Google Drive chunks.
+    Extract data to be sent to Ragdoll service API body for Strong CSV chunks.
     
     Args:
         chunk (Chunk): A single chunk split from a document.
@@ -15,9 +15,9 @@ def google_drive_extractor(
     
     # Extract chunk data
     data = {
-        "name": chunk.metadata.get("title", "unknown"),
-        "source": chunk.metadata.get("source"),
-        "content": chunk.page_content,
-        "meta": {k: v for k, v in chunk.metadata.items() if k in meta}
+        "name": chunk["metadata"].get("title", "unknown"),
+        "source": chunk["metadata"].get("source"),
+        "content": chunk["page_content"],
+        "meta": {k: v for k, v in chunk["metadata"].items() if k in meta}
     }
     return data
