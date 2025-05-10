@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('source')->unique();
             $table->string('type');
             $table->string('parent_id')->nullable();
-            $table->string('category')->nullable();
             $table->boolean('is_outdated')->default(false); // status: true = outdated
             $table->timestamps();
         });

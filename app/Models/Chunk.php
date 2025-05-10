@@ -11,7 +11,12 @@ class Chunk extends Model
 {
     use HasEmbeddings, Searchable;
 
-    protected $fillable = ['document_id', 'content', 'index'];
+    protected $fillable = ['document_id', 'content', 'index', 'meta', 'tags'];
+
+    protected $casts = [
+        'meta' => 'array',
+        'tags' => 'array',
+    ];
 
     public function searchableAs(): string
     {
@@ -22,6 +27,8 @@ class Chunk extends Model
     {
         return [
             'title' => $this->document->name,
+            'meta' => $this->meta,
+            'tags' => $this->tags,
             'content' => $this->content,
         ];
     }

@@ -16,6 +16,8 @@ return new class extends Migration
             $table->foreignId('document_id')->constrained()->onDelete('cascade');
             $table->text('content');
             $table->integer('index');
+            $table->json('meta')->nullable();
+            $table->json('tags')->nullable();
             $table->timestamps();
         });
     }

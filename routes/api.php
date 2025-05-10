@@ -31,6 +31,8 @@ Route::post('/chunk', function (Request $request) {
         ],
         [
             'content' => $request->input('content'),
+            'meta' => $request->input('meta'),
+            'tags' => $request->input('tags'),
         ]
     );
 

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Document extends Model
 {
-    protected $fillable = ['name', 'source', 'type', 'parent_id', 'category', 'is_outdated'];
+    protected $fillable = ['name', 'source', 'type', 'parent_id', 'is_outdated'];
 
     public function chunks(): HasMany
     {
