@@ -42,6 +42,8 @@ class SimilaritySearchTool extends Tool
                     'content' => $result->content ?? null,
                     'title' => $result->document->name ?? null,
                     'source' => $result->document->source ?? null,
+                    'meta' => $result->meta ?? null,
+                    'tags' => $result->tags ?? null,
                     'neighbor_distance' => $result->embedding['neighbor_distance'] ?? null,
                 ];
             }));

@@ -4,6 +4,16 @@
             <title>{{ $result['title'] }}</title>
             <content>{{ $result['content'] }}</content>
             <source>{{ $result['source'] }}</source>
+            <metas>
+                @foreach ($result['meta'] as $meta)
+                    <meta>{{ $meta }}</meta>
+                @endforeach
+            </metas>
+            <tags>
+                @foreach ($result['tags'] as $tag)
+                    <tag>{{ $tag }}</tag>
+                @endforeach
+            </tags>
         </link>
     @endforeach
 </links>
