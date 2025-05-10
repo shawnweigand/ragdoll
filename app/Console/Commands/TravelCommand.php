@@ -2,9 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Tools\Agents\Travel\ResearchAgentTool;
+use App\Tools\Agents\Travel\FlightResearcherTool;
 use App\Tools\Embeddings\SimilaritySearchTool;
-use App\Tools\Serper\SerperSearchTool;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Laravel\Prompts\Concerns\Colors;
@@ -44,11 +43,14 @@ class TravelCommand extends Command
             ->using(Provider::Gemini, 'gemini-2.0-flash')
             ->withSystemPrompt(view('prompts.agents.travel.coordinator'))
             ->withTools([
+                # Flight
+                # Hotel
+                # Activity
                 # Provide more specific tools -> flight tool, activity tool, etc. and a general research tool
                 new SimilaritySearchTool([
                     'tags->category' => 'Travel',
                 ]),
-                new ResearchAgentTool(),
+                new FlightResearcherTool(),
                 // new SerperSearchTool(),
             ])
             ->withMaxSteps(5);
