@@ -31,7 +31,7 @@ class FlightResearcherTool extends Tool
 
         $this->researcher = Prism::text()
             ->using(Provider::Gemini, 'gemini-2.0-flash')
-            ->withSystemPrompt(view('prompts.agents.travel.transportation.researcher'))
+            ->withSystemPrompt(view('prompts.agents.travel.researchers.flight'))
             ->withTools([
                 new SerperSearchTool(),
             ])
@@ -62,7 +62,7 @@ class FlightResearcherTool extends Tool
                 ->asStructured();
 
             // Render the output
-            return view('prompts.outputs.travel.transportation.researcher', [
+            return view('prompts.outputs.travel.researchers.flight', [
                 'response' => $response->structured
             ])->render();
 
