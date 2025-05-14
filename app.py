@@ -1,7 +1,9 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Response
 from dotenv import load_dotenv
 import threading
 import os
+import requests
+import json
 from utils.load_and_split_docs import load_and_split_docs
 
 # Loaders
@@ -101,13 +103,57 @@ def parse_strong_docs(csv_name: str):
 # def ping():
 #     return jsonify({'message': 'pong'})
 
-# # Example: Echo back posted data
-# @app.route('/api/echo', methods=['POST'])
-# def echo():
-#     data = request.get_json()
-#     return jsonify({
-#         'you_sent': data
-#     })
+# Example: Echo back posted data
+@app.route('/api/echo', methods=['POST'])
+def echo():
+    try:
+        data = request.get_json()
+
+        conversation_id = data.get('conversation_id', 'N/A')
+        user_id = data.get('user_id', 'N/A')
+
+        with (open(f".temp/log.log", "a")) as f:
+            # f.write(f"{request.headers}\n")
+            f.write(f"Convo {conversation_id} for user {user_id}\n")
+
+        query_data = data.get('query', [])
+        if query_data:
+            content = query_data[0].get('content', 'No content available')
+        else:
+            content = "No query data found."
+        
+        def generate_response():
+            # Meta event
+            yield f"event: meta\ndata: {json.dumps({'content_type': 'text/markdown', 'suggested_replies': False})}\n\n"
+
+            # Text event: response to the user's query
+            yield f"event: text\ndata: {json.dumps({'text': f'Hi there! You said: {content}'})}\n\n"
+
+            # Optional suggested replies event (you can customize this based on your needs)
+            yield f"event: suggested_reply\ndata: {json.dumps({'text': 'Can you tell me more?'})}\n\n"
+            yield f"event: suggested_reply\ndata: {json.dumps({'text': 'What would you like to do next?'})}\n\n"
+
+            # Done event (must be the last event)
+            yield f"event: done\ndata: {json.dumps({})}\n\n"
+        
+        return Response(generate_response(), content_type='text/event-stream')
+
+        return jsonify({
+            'you_sent': data
+        })
+    except Exception as e:
+        # If any error occurs, respond with an error event
+        error_message = f"An error occurred: {str(e)}"
+
+        with (open(f".temp/log.log", "a")) as f:
+            # f.write(f"{request.headers}\n")
+            f.write(f"{error_message}\n")
+
+        return Response(
+            f"event: error\ndata: {json.dumps({'text': error_message, 'allow_retry': True})}\n\n", 
+            content_type='text/event-stream', 
+            status=500
+        )
 
 # # Example: Dynamic URL parameter
 # @app.route('/api/user/<username>', methods=['GET'])
