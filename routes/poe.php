@@ -18,7 +18,7 @@ Route::post('/echo', function (Request $request) {
         $userId = $data['user_id'] ?? 'N/A';
 
         $queryData = $data['query'] ?? [];
-        $content = $queryData[0]['content'] ?? 'No content available';
+        $content = end($queryData)['content'] ?? 'No content available';
 
         return new StreamedResponse(function () use ($content) {
             echo "event: meta\n";
