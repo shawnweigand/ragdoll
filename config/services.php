@@ -49,6 +49,10 @@ return [
         'key' => env('TRELLO_API_KEY'),
         'token' => env('TRELLO_API_TOKEN'),
         'board_id' => env('TRELLO_BOARD_ID'),
+    ],
+
+    'hevy' => [
+        'key' => env('HEVY_API_KEY')
     ]
 
 ];
