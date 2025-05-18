@@ -4,6 +4,7 @@ namespace App\Tools\Agents\Fitness;
 
 use App\Tools\Embeddings\SimilaritySearchTool;
 use App\Tools\Hevy\HevyGetWorkoutEventsTool;
+use App\Tools\Hevy\HevyGetWorkoutsTool;
 use App\Tools\Serper\SerperSearchTool;
 use Illuminate\Support\Collection;
 use Prism\Prism\Prism;
@@ -36,7 +37,7 @@ class LiftSearchTool extends Tool
             ->using(Provider::Gemini, 'gemini-2.0-flash')
             ->withSystemPrompt(view('prompts.agents.fitness.searchers.lift'))
             ->withTools([
-                new HevyGetWorkoutEventsTool(),
+                new HevyGetWorkoutsTool('test')
             ])
             ->withMaxSteps(5);
 

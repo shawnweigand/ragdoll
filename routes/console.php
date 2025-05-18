@@ -1,12 +1,20 @@
 <?php
 
+use App\Models\Chat;
 use App\Models\Chunk;
 use App\Services\HevyService;
 use App\Services\TrelloService;
+use App\Tools\Agents\Fitness\LiftSearchTool;
 use App\Tools\Hevy\HevyGetWorkoutEventsTool;
+use App\Tools\Hevy\HevyGetWorkoutsByDateTool;
+use App\Tools\Hevy\HevyGetWorkoutsByExerciseTool;
+use App\Tools\Hevy\HevyGetWorkoutsTool;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Carbon\Carbon;
+use Prism\Prism\Enums\Provider;
+use Prism\Prism\Prism;
+use Prism\Prism\ValueObjects\Messages\UserMessage;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -37,10 +45,34 @@ Artisan::command('embed', function () {
 
 Artisan::command('hevy', function () {
     // dd(Carbon::parse('2025-05-03T00:00:00Z')->toIso8601String());
-    // $hevyService = new HevyService();
-    // $response = $hevyService->getWorkouts();
     // $response = $hevyService->getWorkoutEvents();
-    $hevy = new HevyGetWorkoutEventsTool();
-    $response = $hevy->__invoke('2025-05-03T00:00:00Z');
-    dd($response);
+    // $hevy = new HevyGetWorkoutEventsTool();
+    // $response = $hevy->__invoke('2024-12-03T00:00:00Z', '2025-01-01T00:00:00Z');
+    // dd($response);
 })->purpose('Get workouts from Hevy');
+
+Artisan::command('hey', function () {
+    // $messages = [new UserMessage('whats my best squat of all time')];
+    $chat = Chat::first();
+    $message = $chat->messages()->updateOrCreate([
+        'source_id' => 'test!',
+        'role' => 'user',
+    ], [
+        'content' => 'whats my best bench ever',
+    ]);
+    $messages = Chat::first()->prismMessages();
+    // dd($messages);
+    $prism = Prism::text()
+            ->using(Provider::Gemini, 'gemini-2.0-flash')
+            ->withSystemPrompt(view('prompts.agents.fitness.coordinator'))
+            ->withTools([
+                // new HevyGetWorkoutsTool('c-00000000000000000000000000000000000000xy92pdqmolvubsssk7i2af8v1j'),
+                new HevyGetWorkoutsByDateTool('test'),
+                new HevyGetWorkoutsByExerciseTool('test'),
+            ])
+            ->withMaxSteps(5);
+    // dd($messages);
+    $answer = $prism->withMessages($messages->toArray())
+        ->asText();
+    dd($answer->text);
+})->purpose('Get workout events from Hevy');

@@ -21,30 +21,44 @@ class HevyService
         ];
     }
 
-    public function getWorkouts()
+    public function getWorkouts(int $page = 1, int $pageSize = 10)
     {
         $url = $this->baseUrl . '/workouts';
 
-        $response = Http::get($url, [
-            // 'page' => 1,
-            // 'pageSize' => 10,
-        ], $this->headers);
+        $response = Http::withHeaders($this->headers)
+            ->get($url, [
+                'page' => $page,
+                'pageSize' => $pageSize,
+            ]);
 
         return json_decode($response->body(), true);
     }
 
-    public function getWorkoutEvents($since = "1970-01-01T00:00:00Z")
+    public function getWorkoutEvents($since = "1970-01-01T00:00:00Z", $page = 1, $pageSize = 10)
     {
-
         $url = $this->baseUrl . '/workouts/events';
 
         $response = Http::withHeaders($this->headers)
             ->get($url, [
                 'since' => Carbon::parse($since)->toIso8601String(),
-                // 'page' => 1,
-                // 'pageSize' => 10,
+                'page' => $page,
+                'pageSize' => $pageSize,
             ]);
 
         return json_decode($response->body(), true);
+    }
+
+    public function getAllWorkouts()
+    {
+        $page = 1;
+        $workouts = collect();
+
+        do {
+            $response = $this->getWorkouts($page);
+            $workouts = $workouts->merge($response['workouts']);
+            $page++;
+        } while ($page <= $response['page_count']);
+
+        return $workouts;
     }
 }

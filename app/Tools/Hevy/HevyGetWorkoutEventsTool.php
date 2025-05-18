@@ -3,6 +3,7 @@
 namespace App\Tools\Hevy;
 
 use App\Services\HevyService;
+use Carbon\Carbon;
 use Prism\Prism\Tool;
 
 class HevyGetWorkoutEventsTool extends Tool
@@ -13,25 +14,50 @@ class HevyGetWorkoutEventsTool extends Tool
     {
         $this->hevy = new HevyService();
         $this->as('Hevy')
-            ->for('useful when you need to search for lifting workouts on the Hevy app from May 3, 2025 and after.')
+            ->for('useful when you need to search for lifting workouts on the Hevy app.')
             ->withStringParameter('since', 'A specific date and time in ISO 8601 format (e.g., “2025-05-03T00:00:00Z”) that the lifting agent should search for workouts since this date.')
+            ->withStringParameter('until', 'A specific date and time in ISO 8601 format (e.g., “2025-05-03T00:00:00Z”) that the lifting agent should search for workouts until this date.')
             ->using($this);
     }
 
-    public function __invoke(string $since): string
+    public function __invoke(string $since, string $until): string
     {
-        $response = $this->hevy->getWorkoutEvents($since);
+        $since = Carbon::parse($since, 'UTC');
+        $until = Carbon::parse($until, 'UTC');
+        $done = false;
+        $page = 0;
+        $results = collect();
 
-        $results = collect($response['events'])
-            ->where('type', 'updated')
-            ->filter(fn ($e) => isset($e['workout']['id']))
-            ->unique(fn ($e) => $e['workout']['id'])
-            // ->where('workout', '!=', null)
-            // ->where('workout.id', '!=', null)
-            // ->unique('workout.id')
-            ->pluck('workout')
-            ->sortBy('start_time')
-            ->values();
+        while (!$done && $since <= $until) {
+            $page++;
+
+            $response = $this->hevy->getWorkoutEvents($since->toIso8601ZuluString(), $page);
+
+            $workouts = collect($response['events'])
+                ->where('type', 'updated')
+                ->filter(fn ($e) => isset($e['workout']['id']))
+                ->unique(fn ($e) => $e['workout']['id'])
+                ->pluck('workout');
+
+            # Fix the done logic, working backwards instead of forward -> doesnt work, get all workouts anyways
+            $earliestStart = $workouts->min('start_time');
+            if ($earliestStart && Carbon::parse($earliestStart)->greaterThanOrEqualTo(Carbon::parse($until))) {
+                $done = true;
+            }
+
+            $results = $results->merge(
+                $workouts->filter(function ($workout) use ($since, $until) {
+                    $start = Carbon::parse($workout['start_time'], 'UTC');
+                    return $start->betweenIncluded($since, $until);
+                })
+            );
+
+            if ($response['page'] >= $response['page_count']) {
+                $done = true;
+            }
+        };
+
+        $results = $results->sortBy('start_time')->values();
 
         $modifiedResults = $results->map(function ($result) {
             return [

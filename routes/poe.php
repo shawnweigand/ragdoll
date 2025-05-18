@@ -1,13 +1,18 @@
 <?php
 
 use App\Models\Chat;
+use App\Services\HevyService;
 use App\Tools\Agents\Fitness\LiftSearchTool;
 use App\Tools\Hevy\HevyGetWorkoutEventsTool;
+use App\Tools\Hevy\HevyGetWorkoutsByDateTool;
+use App\Tools\Hevy\HevyGetWorkoutsByExerciseTool;
+use App\Tools\Hevy\HevyGetWorkoutsTool;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Prism\Prism\Enums\Provider;
 use Prism\Prism\Exceptions\PrismException;
 use Prism\Prism\Prism;
+use Prism\Prism\ValueObjects\Messages\UserMessage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 Route::get('/user', function (Request $request) {
@@ -16,24 +21,23 @@ Route::get('/user', function (Request $request) {
     ];
 });
 
-Route::post('/echo', function (Request $request) {
-    try {
+Route::post('/test', function (Request $request) {
+    try
+    {
+        // Extract the JSON data from the request
         $data = $request->json()->all();
-
         $chatId = $data['conversation_id'];
         $messageId = $data['message_id'];
         $userId = $data['user_id'];
+        $queryData = $data['query'];
+        $content = end($queryData)['content'];
 
-
+        // Create the chat and user message
         $chat = Chat::firstOrCreate([
             'source_id' => $chatId,
             'type' => 'poe',
             // 'user_id' => $data['user_id'] ?? null,
         ]);
-
-        $queryData = $data['query'];
-        $content = end($queryData)['content'];
-
         $message = $chat->messages()->updateOrCreate([
             'source_id' => $messageId,
             'role' => 'user',
@@ -41,19 +45,82 @@ Route::post('/echo', function (Request $request) {
             'content' => $content,
         ]);
 
-        $messages = $chat->prismMessages();
-
+        // Run the Hevy AI Agent
+        $messages = $chat->prismMessages()->toArray();
         $prism = Prism::text()
             ->using(Provider::Gemini, 'gemini-2.0-flash')
             ->withSystemPrompt(view('prompts.agents.fitness.coordinator'))
             ->withTools([
-                // new HevyGetWorkoutEventsTool(),
-                new LiftSearchTool(),
+                // new HevyGetWorkoutsByDateTool($chatId),
+                new HevyGetWorkoutsByExerciseTool($chatId),
+            ])
+            ->withMaxSteps(5);
+        $answer = $prism->withMessages($messages)
+            ->asText();
+        return response()->json([
+            'answer' => $answer->text,
+        ]);
+    }
+    catch (PrismException $e)
+    {
+        return response()->json([
+            'error' => 'PrismException',
+            'message' => $e->getMessage(),
+        ]);
+    }
+    catch (\Throwable $e)
+    {
+        return response()->json([
+            'error' => 'Throwable',
+            'message' => $e->getMessage(),
+        ]);
+    }
+    {
+
+    }
+});
+
+Route::post('/echo', function (Request $request) {
+    try {
+        // Extract the JSON data from the request
+        $data = $request->json()->all();
+
+        $chatId = $data['conversation_id'];
+        $messageId = $data['message_id'];
+        $userId = $data['user_id'];
+        $queryData = $data['query'];
+        $content = end($queryData)['content'];
+
+        // Create the chat and user message
+        $chat = Chat::firstOrCreate([
+            'source_id' => $chatId,
+            'type' => 'poe',
+            // 'user_id' => $data['user_id'] ?? null,
+        ]);
+        $message = $chat->messages()->updateOrCreate([
+            'source_id' => $messageId,
+            'role' => 'user',
+        ], [
+            'content' => $content,
+        ]);
+
+        // Run the Hevy AI Agent
+        $messages = $chat->prismMessages()->toArray();
+        $prism = Prism::text()
+            ->using(Provider::Gemini, 'gemini-2.0-flash')
+            ->withSystemPrompt(view('prompts.agents.fitness.coordinator'))
+            ->withTools([
+                new HevyGetWorkoutsByDateTool($chatId),
+                new HevyGetWorkoutsByExerciseTool($chatId),
             ])
             ->withMaxSteps(5);
 
-        $answer = $prism->withMessages($messages->toArray())
+        // return $messages;
+        $answer = $prism->withMessages($messages)
             ->asStream();
+        // return response()->json([
+        //     'answer' => $answer->text,
+        // ]);
 
         return new StreamedResponse(function () use ($chat, $answer, $messageId) {
 
@@ -74,17 +141,6 @@ Route::post('/echo', function (Request $request) {
                     'text' => $chunk->text,
                 ]) . "\n\n";
 
-                // Check for tool calls
-                // if ($chunk->toolCalls) {
-                //     foreach ($chunk->toolCalls as $call) {
-                //         $body = '';
-                //         foreach ($call->arguments() as $key => $value) {
-                //             $key = $key;
-                //             $body .= "$key: $value\n";
-                //         }
-                //         $this->box($call->name, wordwrap($body, 60), color: 'blue');
-                //     }
-                // }
             }
 
             $chat->messages()->updateOrCreate([
@@ -123,7 +179,7 @@ Route::post('/echo', function (Request $request) {
             'Content-Type' => 'text/event-stream',
         ]);
     } catch (\Throwable $e) {
-        $errorMessage = "An error occurred: " . $e->getMessage();
+        $errorMessage = "An error occurred on line " . $e->getLine() . ": " . $e->getMessage();
 
         return response()->stream(function () use ($errorMessage) {
             echo "event: error\n";

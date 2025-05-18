@@ -3,27 +3,34 @@
 namespace App\Tools\Hevy;
 
 use App\Services\HevyService;
+use Illuminate\Support\Facades\Cache;
 use Prism\Prism\Tool;
 
 class HevyGetWorkoutsTool extends Tool
 {
     protected HevyService $hevy;
+    protected int $pageCount = 10;
+    protected string $cacheKey;
 
-    public function __construct()
+    public function __construct(string $cacheKey)
     {
+        $this->cacheKey = $cacheKey;
         $this->hevy = new HevyService();
-        $this->as('Hevy')
+        $this->as('HevyGetWorkoutsTool')
             ->for('useful when you need to search for lifting workouts on the Hevy app.')
             ->using($this);
     }
 
     public function __invoke(): string
-    {
-        $response = $this->hevy->getWorkouts();
+   {
+        // Cache the results for 1 hour
+        $workouts = collect(Cache::remember($this->cacheKey, $seconds = 3600, function () {
+            // This callback only runs if the key is not in the cache.
+            return $this->hevy->getAllWorkouts();
+        }));
 
-        $results = collect($response['workouts']);
-
-        $modifiedResults = $results->map(function ($result) {
+        // Modify the results for processing
+        $modifiedResults = $workouts->map(function ($result) {
             return [
                 'id' => $result['id'],
                 'title' => $result['title'],
@@ -60,5 +67,5 @@ class HevyGetWorkoutsTool extends Tool
         return view('prompts.hevy.hevy-get-workouts-tool-results', [
             'results' => $modifiedResults
         ])->render();
-    }
+   }
 }
