@@ -1,9 +1,12 @@
 <?php
 
 use App\Models\Chunk;
+use App\Services\HevyService;
 use App\Services\TrelloService;
+use App\Tools\Hevy\HevyGetWorkoutEventsTool;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Carbon\Carbon;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -31,3 +34,13 @@ Artisan::command('embed', function () {
         })
     )->toArray();
 })->purpose('Embed all documents');
+
+Artisan::command('hevy', function () {
+    // dd(Carbon::parse('2025-05-03T00:00:00Z')->toIso8601String());
+    // $hevyService = new HevyService();
+    // $response = $hevyService->getWorkouts();
+    // $response = $hevyService->getWorkoutEvents();
+    $hevy = new HevyGetWorkoutEventsTool();
+    $response = $hevy->__invoke('2025-05-03T00:00:00Z');
+    dd($response);
+})->purpose('Get workouts from Hevy');

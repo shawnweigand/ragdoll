@@ -25,7 +25,7 @@ class FlightResearcherTool extends Tool
     public function __construct()
     {
         $this->as('FlightResearcher')
-            ->for('researching travel flight options between locations.')
+            ->for('researching travel flight options between locations such as prices, airlines, locations, links.')
             ->withStringParameter('message', 'A specific flight-related research request (e.g., “Flights from NYC to Lisbon in October”) that the transportation agent should investigate and summarize. Best to search one trasportation at a time.')
             ->using($this);
 

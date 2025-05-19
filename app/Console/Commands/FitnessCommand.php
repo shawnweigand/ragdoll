@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Tools\Agents\Fitness\LiftSearchTool;
 use App\Tools\Embeddings\SimilaritySearchTool;
 use App\Tools\Serper\SerperSearchTool;
 use Illuminate\Console\Command;
@@ -43,10 +44,11 @@ class FitnessCommand extends Command
             ->using(Provider::Gemini, 'gemini-2.0-flash')
             ->withSystemPrompt(view('prompts.agents.fitness.coordinator'))
             ->withTools([
-                new SimilaritySearchTool([
-                    'tags->category' => 'Fitness',
-                ]),
-                new SerperSearchTool(),
+                // new SimilaritySearchTool([
+                //     'tags->category' => 'Fitness',
+                // ]),
+                // new SerperSearchTool(),
+                new LiftSearchTool(),
             ])
             ->withMaxSteps(5);
     }
