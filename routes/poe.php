@@ -123,6 +123,15 @@ Route::post('/echo', function (Request $request) {
         // ]);
 
         return new StreamedResponse(function () use ($chat, $answer, $messageId) {
+            // Disable buffering
+            ob_end_clean();
+            ini_set('zlib.output_compression', 0);
+            ini_set('output_buffering', 'off');
+            ini_set('implicit_flush', 1);
+            while (ob_get_level() > 0) {
+                ob_end_flush();
+            }
+            flush();
 
             // Send the initial event metadata
             echo "event: meta\n";
@@ -133,21 +142,25 @@ Route::post('/echo', function (Request $request) {
 
             $fullResponse = '';
             foreach ($answer as $chunk) {
-                $fullResponse .= $chunk->text;
+                $text = $chunk->text;
+                $fullResponse .= $text;
+                if ($text === '') continue;
 
-                // Send the chunked response
-                echo "event: text\n";
-                echo "data: " . json_encode([
-                    'text' => $chunk->text,
-                ]) . "\n\n";
-
+                // Simulate token chunking (e.g., 5-character chunks)
+                $miniChunks = str_split($text, 5);
+                foreach ($miniChunks as $miniChunk) {
+                    echo "event: text\n";
+                    echo "data: " . json_encode(['text' => $miniChunk]) . "\n\n";
+                    flush();
+                    usleep(40 * 1000); // Optional: smoother typing feel (40ms = ~25 tokens/sec)
+                }
             }
 
             $chat->messages()->updateOrCreate([
                 'source_id' => $messageId,
                 'role' => 'assistant',
             ], [
-                'content' => $fullResponse,
+                'content' => $fullResponse ?: 'An error occured finding your response. Please try again.',
             ]);
 
             echo "event: suggested_reply\n";
@@ -163,6 +176,7 @@ Route::post('/echo', function (Request $request) {
             'Content-Type' => 'text/event-stream',
             'Cache-Control' => 'no-cache',
             'Connection' => 'keep-alive',
+            'X-Accel-Buffering' => 'no'
         ]);
 
     } catch (PrismException $e) {

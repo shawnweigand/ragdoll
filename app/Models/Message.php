@@ -22,13 +22,15 @@ class Message extends Model
 
     public function prismMessage()
     {
+        $content = $this->content ?: 'No content provided';
+
         switch ($this->role) {
             case 'user':
-                return new UserMessage($this->content);
+                return new UserMessage($content);
             case 'assistant':
-                return new AssistantMessage($this->content);
+                return new AssistantMessage($content);
             case 'system':
-                return new SystemMessage($this->content);
+                return new SystemMessage($content);
         }
     }
 }
