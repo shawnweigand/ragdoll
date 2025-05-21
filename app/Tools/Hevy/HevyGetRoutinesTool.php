@@ -6,37 +6,39 @@ use App\Services\HevyService;
 use Illuminate\Support\Facades\Cache;
 use Prism\Prism\Tool;
 
-class HevyGetWorkoutsTool extends Tool
+class HevyGetRoutinesTool extends Tool
 {
     protected HevyService $hevy;
     protected int $pageCount = 10;
     protected string $cacheKey;
 
-    public function __construct(string $cacheKey)
+    public function __construct($cacheKey)
     {
         $this->cacheKey = $cacheKey;
-        $this->hevy = new HevyService();
-        $this->as('HevyGetWorkoutsTool')
-            ->for('useful when you need to search for lifting workouts on the Hevy app.')
+        // $this->hevy = new HevyService();
+        $this->as('HevyGetRoutinesTool')
+            ->for('searching for your personalized workout routines, these are typicalyy repeated workouts.')
+            ->withStringParameter('apiKey', 'a key used to authenticate requests for a user account to Hevy to retrieve workout data')
             ->using($this);
     }
 
-    public function __invoke(): string
-   {
+    public function __invoke(string $apiKey): string
+    {
+        // initiate hevy with apikey
+        $this->hevy = new HevyService($apiKey);
+
         // Cache the results for 1 hour
-        $workouts = collect(Cache::remember($this->cacheKey, $seconds = 3600, function () {
+        $routines = collect(Cache::remember('routines:' . $this->cacheKey, $seconds = 3600, function () {
             // This callback only runs if the key is not in the cache.
-            return $this->hevy->getAllWorkouts();
+            return $this->hevy->getAllRoutines();
         }));
 
         // Modify the results for processing
-        $modifiedResults = $workouts->map(function ($result) {
+        $modifiedResults = $routines->map(function ($result) {
             return [
                 'id' => $result['id'],
                 'title' => $result['title'],
-                'description' => $result['description'],
-                'start_time' => $result['start_time'],
-                'end_time' => $result['end_time'],
+                'folder_id' => $result['folder_id'],
                 'updated_at' => $result['updated_at'],
                 'created_at' => $result['created_at'],
 
@@ -55,7 +57,6 @@ class HevyGetWorkoutsTool extends Tool
                                 'reps' => $set['reps'],
                                 'distance_meters' => $set['distance_meters'],
                                 'duration_seconds' => $set['duration_seconds'],
-                                'rpe' => $set['rpe'],
                                 'custom_metric' => $set['custom_metric'],
                             ];
                         })->all(),
@@ -64,8 +65,9 @@ class HevyGetWorkoutsTool extends Tool
             ];
         })->all();
 
-        return view('prompts.hevy.hevy-get-workouts-tool-results', [
+        return view('prompts.hevy.hevy-get-routines-tool-results', [
             'results' => $modifiedResults
         ])->render();
-   }
+
+    }
 }

@@ -3,6 +3,7 @@
 use App\Models\Chat;
 use App\Services\HevyService;
 use App\Tools\Agents\Fitness\LiftSearchTool;
+use App\Tools\Hevy\HevyGetRoutinesTool;
 use App\Tools\Hevy\HevyGetWorkoutEventsTool;
 use App\Tools\Hevy\HevyGetWorkoutsByDateTool;
 use App\Tools\Hevy\HevyGetWorkoutsByExerciseTool;
@@ -112,6 +113,7 @@ Route::post('/echo', function (Request $request) {
             ->withTools([
                 new HevyGetWorkoutsByDateTool($chatId),
                 new HevyGetWorkoutsByExerciseTool($chatId),
+                new HevyGetRoutinesTool($chatId),
             ])
             ->withMaxSteps(5);
 
@@ -167,7 +169,10 @@ Route::post('/echo', function (Request $request) {
             echo "data: " . json_encode(['text' => 'Can you tell me more?']) . "\n\n";
 
             echo "event: suggested_reply\n";
-            echo "data: " . json_encode(['text' => 'What would you like to do next?']) . "\n\n";
+            echo "data: " . json_encode(['text' => 'How much did I lift the last time I did Bench Press?']) . "\n\n";
+
+            echo "event: suggested_reply\n";
+            echo "data: " . json_encode(['text' => 'What have I worked out this week?']) . "\n\n";
 
             echo "event: done\n";
             echo "data: {}\n\n";

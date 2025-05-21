@@ -12,9 +12,9 @@ class HevyService
     protected string $baseUrl;
     protected array $headers;
 
-    public function __construct()
+    public function __construct($apiKey)
     {
-        $this->apiKey = config('services.hevy.key');
+        $this->apiKey = $apiKey; //config('services.hevy.key');
         $this->baseUrl = 'https://api.hevyapp.com/v1';
         $this->headers = [
             'api-key' => $this->apiKey,
@@ -48,6 +48,19 @@ class HevyService
         return json_decode($response->body(), true);
     }
 
+    public function getRoutines(int $page = 1, int $pageSize = 10)
+    {
+        $url = $this->baseUrl . '/routines';
+
+        $response = Http::withHeaders($this->headers)
+            ->get($url, [
+                'page' => $page,
+                'pageSize' => $pageSize,
+            ]);
+
+        return json_decode($response->body(), true);
+    }
+
     public function getAllWorkouts()
     {
         $page = 1;
@@ -60,5 +73,19 @@ class HevyService
         } while ($page <= $response['page_count']);
 
         return $workouts;
+    }
+
+    public function getAllRoutines()
+    {
+        $page = 1;
+        $routines = collect();
+
+        do {
+            $response = $this->getRoutines($page);
+            $routines = $routines->merge($response['routines']);
+            $page++;
+        } while ($page <= $response['page_count']);
+
+        return $routines;
     }
 }
