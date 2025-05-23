@@ -36,64 +36,67 @@ class HevyGetWorkoutsByDateTool extends Tool
 
     public function __invoke(string $apiKey, string $start, string $end): string
     {
-        // initiate hevy with apikey
-        $this->hevy = new HevyService($apiKey);
+        try {
+            // initiate hevy with apikey
+            $this->hevy = new HevyService($apiKey);
 
-        // Cache the results for 1 hour
-        $workouts = collect(Cache::remember('workouts:' . $this->cacheKey, $seconds = 3600, function () {
-        // This callback only runs if the key is not in the cache.
-            return $this->hevy->getAllWorkouts();
-        }));
+            // Cache the results for 1 hour
+            $workouts = collect(Cache::remember('workouts:' . $this->cacheKey, $seconds = 3600, function () {
+            // This callback only runs if the key is not in the cache.
+                return $this->hevy->getAllWorkouts();
+            }));
 
-        // Parse the start and end dates
-        $startDate = Carbon::parse($start);
-        $endDate = Carbon::parse($end);
+            // Parse the start and end dates
+            $startDate = Carbon::parse($start);
+            $endDate = Carbon::parse($end);
 
-        // Filter the results based on the start and end dates
-        $filteredWorkouts= $workouts->filter(function ($workout) use ($startDate, $endDate) {
-            $workoutStartTime = Carbon::parse($workout['start_time']);
-            return $workoutStartTime->isBetween($startDate, $endDate, true);
-        });
+            // Filter the results based on the start and end dates
+            $filteredWorkouts= $workouts->filter(function ($workout) use ($startDate, $endDate) {
+                $workoutStartTime = Carbon::parse($workout['start_time']);
+                return $workoutStartTime->isBetween($startDate, $endDate, true);
+            });
 
-        // Modify the results for processing
-        $modifiedResults = $filteredWorkouts->map(function ($result) {
-            return [
-                'id' => $result['id'],
-                'title' => $result['title'],
-                'description' => $result['description'],
-                'start_time' => $result['start_time'],
-                'end_time' => $result['end_time'],
-                'updated_at' => $result['updated_at'],
-                'created_at' => $result['created_at'],
+            // Modify the results for processing
+            $modifiedResults = $filteredWorkouts->map(function ($result) {
+                return [
+                    'id' => $result['id'],
+                    'title' => $result['title'],
+                    'description' => $result['description'],
+                    'start_time' => $result['start_time'],
+                    'end_time' => $result['end_time'],
+                    'updated_at' => $result['updated_at'],
+                    'created_at' => $result['created_at'],
 
-                'exercises' => collect($result['exercises'])->map(function ($exercise) {
-                    return [
-                        'index' => $exercise['index'],
-                        'title' => $exercise['title'],
-                        'notes' => $exercise['notes'],
-                        'exercise_template_id' => $exercise['exercise_template_id'],
-                        'superset_id' => $exercise['superset_id'],
-                        'sets' => collect($exercise['sets'])->map(function ($set) {
-                            return [
-                                'index' => $set['index'],
-                                'type' => $set['type'],
-                                'weight_kg' => $set['weight_kg'],
-                                'reps' => $set['reps'],
-                                'distance_meters' => $set['distance_meters'],
-                                'duration_seconds' => $set['duration_seconds'],
-                                'rpe' => $set['rpe'],
-                                'custom_metric' => $set['custom_metric'],
-                            ];
-                        })->all(),
-                    ];
-                }),
-            ];
-        })->all();
+                    'exercises' => collect($result['exercises'])->map(function ($exercise) {
+                        return [
+                            'index' => $exercise['index'],
+                            'title' => $exercise['title'],
+                            'notes' => $exercise['notes'],
+                            'exercise_template_id' => $exercise['exercise_template_id'],
+                            'superset_id' => $exercise['superset_id'],
+                            'sets' => collect($exercise['sets'])->map(function ($set) {
+                                return [
+                                    'index' => $set['index'],
+                                    'type' => $set['type'],
+                                    'weight_kg' => $set['weight_kg'],
+                                    'reps' => $set['reps'],
+                                    'distance_meters' => $set['distance_meters'],
+                                    'duration_seconds' => $set['duration_seconds'],
+                                    'rpe' => $set['rpe'],
+                                    'custom_metric' => $set['custom_metric'],
+                                ];
+                            })->all(),
+                        ];
+                    }),
+                ];
+            })->all();
 
-        return view('prompts.hevy.hevy-get-workouts-tool-results', [
-            'results' => $modifiedResults
-        ])->render();
-
+            return view('prompts.hevy.hevy-get-workouts-tool-results', [
+                'results' => $modifiedResults
+            ])->render();
+        } catch (\Exception $e) {
+            return $e->getMessage();
+        }
     }
 
     // protected function setSchema()

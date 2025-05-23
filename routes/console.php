@@ -2,19 +2,14 @@
 
 use App\Models\Chat;
 use App\Models\Chunk;
-use App\Services\HevyService;
 use App\Services\TrelloService;
-use App\Tools\Agents\Fitness\LiftSearchTool;
-use App\Tools\Hevy\HevyGetWorkoutEventsTool;
+use App\Tools\Hevy\HevyGetRoutinesTool;
 use App\Tools\Hevy\HevyGetWorkoutsByDateTool;
 use App\Tools\Hevy\HevyGetWorkoutsByExerciseTool;
-use App\Tools\Hevy\HevyGetWorkoutsTool;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
-use Carbon\Carbon;
 use Prism\Prism\Enums\Provider;
 use Prism\Prism\Prism;
-use Prism\Prism\ValueObjects\Messages\UserMessage;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -53,26 +48,35 @@ Artisan::command('hevy', function () {
 
 Artisan::command('hey', function () {
     // $messages = [new UserMessage('whats my best squat of all time')];
-    $chat = Chat::first();
+    $chat = Chat::firstOrCreate([
+        'source_id' => 'test',
+        'type' => 'poe',
+    ]);
     $message = $chat->messages()->updateOrCreate([
-        'source_id' => 'test!',
+        'source_id' => 'test1',
         'role' => 'user',
     ], [
-        'content' => 'whats my best bench ever',
+        'content' => 'heres my api key e4f121c1-bff0-441f-a065-62fc3fd5c571',
     ]);
-    $messages = Chat::first()->prismMessages();
+    $messages = $chat->prismMessages();
     // dd($messages);
     $prism = Prism::text()
             ->using(Provider::Gemini, 'gemini-2.0-flash')
             ->withSystemPrompt(view('prompts.agents.fitness.coordinator'))
             ->withTools([
-                // new HevyGetWorkoutsTool('c-00000000000000000000000000000000000000xy92pdqmolvubsssk7i2af8v1j'),
                 new HevyGetWorkoutsByDateTool('test'),
                 new HevyGetWorkoutsByExerciseTool('test'),
+                new HevyGetRoutinesTool('test')
             ])
             ->withMaxSteps(5);
     // dd($messages);
     $answer = $prism->withMessages($messages->toArray())
         ->asText();
+    $chat->messages()->updateOrCreate([
+        'source_id' => 'test1',
+        'role' => 'assistant',
+    ], [
+        'content' => $answer->text ?: 'An error occured finding your response. Please try again.',
+    ]);
     dd($answer->text);
 })->purpose('Get workout events from Hevy');

@@ -119,9 +119,11 @@ Route::post('/echo', function (Request $request) {
 
         // return $messages;
         $answer = $prism->withMessages($messages)
+            // ->asText();
             ->asStream();
+
         // return response()->json([
-        //     'answer' => $answer->text,
+        //     'answer' => $answer
         // ]);
 
         return new StreamedResponse(function () use ($chat, $answer, $messageId) {
@@ -145,8 +147,9 @@ Route::post('/echo', function (Request $request) {
             $fullResponse = '';
             foreach ($answer as $chunk) {
                 $text = $chunk->text;
-                $fullResponse .= $text;
+
                 if ($text === '') continue;
+                $fullResponse .= $text;
 
                 // Simulate token chunking (e.g., 5-character chunks)
                 $miniChunks = str_split($text, 5);
