@@ -12,5 +12,5 @@ services:
 
 networks:
   ragdoll:
-    external: true
+    # external: true
     name: ragdoll

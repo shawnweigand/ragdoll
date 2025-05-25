@@ -38,11 +38,11 @@ def load_and_split_docs(
         try:
             # Split doc into chunks
             chunks = split_fn([doc])
+            print(chunks)
         except Exception as e:
             with (open(".temp/errors/doc_{i}.log", "a")) as f:
-                f.write(f"Error splitting document: {e}\n")
+                f.write(f"Error splitting document: {e} {doc}\n")
             continue
-        
         # Loop chunks
         for j, chunk in enumerate(chunks):
             # Set initial data
@@ -57,9 +57,9 @@ def load_and_split_docs(
                 extracted_data = extract_fn(chunk, meta)
                 data.update(extracted_data)
                 # Send to ragdoll service
-                response = ragdoll.sendChunk(data)
+                # response = ragdoll.sendChunk(data)
                 with (open(f".temp/outputs/chunk_{i}_{j}.log", "a")) as f:
-                    f.write(f"Response from Ragdoll: {response}\n")
+                    f.write(f"Response from Ragdoll: {data}\n")
             except Exception as e:
                 with (open(f"/temp/errors/error_{i}_{j}.log", "a")) as f:
                     f.write(f"Error sending to Ragdoll: {e}\n")

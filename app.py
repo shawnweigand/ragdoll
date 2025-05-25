@@ -1,14 +1,15 @@
-from flask import Flask, jsonify, request, Response
-from dotenv import load_dotenv
 import threading
 import os
 import requests
 import json
+from flask import Flask, jsonify, request, Response
+from dotenv import load_dotenv
 from utils.load_and_split_docs import load_and_split_docs
 
 # Loaders
 from loaders.drive_loader import load_drive_folder_docs
 from loaders.strong_csv_loader import load_strong_csv_docs
+from loaders.youtube_video_loader import load_youtube_video_transcript
 
 # Splitters
 from splitters.recursive_splitter import split_recursive_docs
@@ -17,6 +18,7 @@ from splitters.strong_csv_splitter import split_strong_csv_docs
 # Extractors
 from extractors.google_drive_extractor import google_drive_extractor
 from extractors.strong_csv_extractor import strong_csv_extractor
+from extractors.youtube_video_extractor import youtube_video_extractor
 
 # Load environment variables
 load_dotenv()
@@ -91,6 +93,27 @@ def parse_strong_docs(csv_name: str):
     
     return jsonify({"message": "Documents are being processed."})
 
+# Google Drive folder
+@app.route('/api/youtube/<video_id>', methods=['POST'])
+def parse_youtube_video_transcript(video_id: str):
+    # Extract meta and tags from the request
+    data = request.get_json()
+    meta = data.get("meta", [])
+    tags = data.get("tags", {})
+    
+    # Load and split documents in a separate thread
+    threading.Thread(target=load_and_split_docs, args=(
+        None,                           #Arg: parent_id
+        "YouTubeVideo",                 #Arg: document_type
+        load_youtube_video_transcript,  #Arg: load_fn
+        [video_id],                     #Arg: load_params
+        split_recursive_docs,           #Arg: split_fn
+        youtube_video_extractor,        #Arg: extract_fn
+        meta,                           #Arg: meta
+        tags                            #Arg: tags
+    )).start()    
+    
+    return jsonify({"message": "Documents are being processed."})
 
 
 # # Root route
@@ -113,7 +136,7 @@ def echo():
         user_id = data.get('user_id', 'N/A')
 
         with (open(f".temp/log.log", "a")) as f:
-            # f.write(f"{request.headers}\n")
+            f.write(f"{request.headers}\n")
             f.write(f"Convo {conversation_id} for user {user_id}\n")
 
         query_data = data.get('query', [])
