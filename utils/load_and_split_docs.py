@@ -38,7 +38,6 @@ def load_and_split_docs(
         try:
             # Split doc into chunks
             chunks = split_fn([doc])
-            print(chunks)
         except Exception as e:
             with (open(".temp/errors/doc_{i}.log", "a")) as f:
                 f.write(f"Error splitting document: {e} {doc}\n")
