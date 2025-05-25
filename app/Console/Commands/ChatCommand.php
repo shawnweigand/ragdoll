@@ -70,14 +70,26 @@ class ChatCommand extends Command
             $fullResponse .= $chunk->text;
 
             // Check for tool calls
-            if ($chunk->toolCalls) {
-                foreach ($chunk->toolCalls as $call) {
+            // if ($chunk->toolCalls) {
+            //     foreach ($chunk->toolCalls as $call) {
+            //         $body = '';
+            //         foreach ($call->arguments() as $key => $value) {
+            //             $key = $key;
+            //             $body .= "$key: $value\n";
+            //         }
+            //         $this->box($call->name, wordwrap($body, 60), color: 'blue');
+            //     }
+            // }
+
+            if ($chunk->toolResults) {
+                foreach ($chunk->toolResults as $result) {
                     $body = '';
-                    foreach ($call->arguments() as $key => $value) {
+                    foreach ($result->args as $key => $value) {
                         $key = $key;
                         $body .= "$key: $value\n";
                     }
-                    $this->box($call->name, wordwrap($body, 60), color: 'blue');
+                    $body .= $result->result;
+                    $this->box($result->toolName, wordwrap($body, 40), color: 'blue');
                 }
             }
 

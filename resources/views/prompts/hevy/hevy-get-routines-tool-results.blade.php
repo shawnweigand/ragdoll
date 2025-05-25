@@ -1,15 +1,14 @@
-<workouts>
-    @foreach ($results as $workout)
-        <workout>
-            {{-- <id>{{ $workout['id'] }}</id> --}}
-            <title>{{ $workout['title'] }}</title>
-            <start_time>{{ $workout['start_time'] }}</start_time>
-            <end_time>{{ $workout['end_time'] }}</end_time>
-            {{-- <updated_at>{{ $workout['updated_at'] }}</updated_at>
-            <created_at>{{ $workout['created_at'] }}</created_at> --}}
+<routines>
+    @foreach ($results as $routine)
+        <routine>
+            {{-- <id>{{ $routine['id'] }}</id> --}}
+            <title>{{ $routine['title'] }}</title>
+            {{-- <folder_id>{{ $routine['folder_id'] }}<folder_id> --}}
+            {{-- <updated_at>{{ $routine['updated_at'] }}</updated_at>
+            <created_at>{{ $routine['created_at'] }}</created_at> --}}
 
             <exercises>
-                @foreach ($workout['exercises'] as $exercise)
+                @foreach ($routine['exercises'] as $exercise)
                     {{-- <index>{{ $exercise['index'] }}</index> --}}
                     <title>{{ $exercise['title'] }}</title>
                     {{-- <notes>{{ $exercise['notes'] }}</notes> --}}
@@ -23,12 +22,11 @@
                             <reps>{{ $set['reps'] }}</reps>
                             {{-- <distance_meters>{{ $set['distance_meters'] }} meters</distance_meters>
                             <duration_seconds>{{ $set['duration_seconds'] }} seconds</duration_seconds>
-                            <rpe>{{ $set['rpe'] }}</rpe>
                             <custom_metric>{{ $set['custom_metric'] }}</custom_metric> --}}
                         @endforeach
                     </sets>
                 @endforeach
             </exercises>
-        </workout>
+        </routine>
     @endforeach
-</workouts>
+</routines>

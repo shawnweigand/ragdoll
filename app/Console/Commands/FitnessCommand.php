@@ -48,7 +48,7 @@ class FitnessCommand extends Command
                 //     'tags->category' => 'Fitness',
                 // ]),
                 // new SerperSearchTool(),
-                new LiftSearchTool(),
+                // new LiftSearchTool(),
             ])
             ->withMaxSteps(5);
     }

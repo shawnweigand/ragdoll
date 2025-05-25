@@ -53,6 +53,11 @@ return [
 
     'hevy' => [
         'key' => env('HEVY_API_KEY')
+    ],
+
+    'poe' => [
+        'token' => env('POE_API_TOKEN'),
+        'token_encoded' => env('POE_API_TOKEN_ENCODED'),
     ]
 
 ];

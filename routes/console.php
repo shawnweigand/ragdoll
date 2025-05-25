@@ -1,12 +1,15 @@
 <?php
 
+use App\Models\Chat;
 use App\Models\Chunk;
-use App\Services\HevyService;
 use App\Services\TrelloService;
-use App\Tools\Hevy\HevyGetWorkoutEventsTool;
+use App\Tools\Hevy\HevyGetRoutinesTool;
+use App\Tools\Hevy\HevyGetWorkoutsByDateTool;
+use App\Tools\Hevy\HevyGetWorkoutsByExerciseTool;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
-use Carbon\Carbon;
+use Prism\Prism\Enums\Provider;
+use Prism\Prism\Prism;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -37,10 +40,43 @@ Artisan::command('embed', function () {
 
 Artisan::command('hevy', function () {
     // dd(Carbon::parse('2025-05-03T00:00:00Z')->toIso8601String());
-    // $hevyService = new HevyService();
-    // $response = $hevyService->getWorkouts();
     // $response = $hevyService->getWorkoutEvents();
-    $hevy = new HevyGetWorkoutEventsTool();
-    $response = $hevy->__invoke('2025-05-03T00:00:00Z');
-    dd($response);
+    // $hevy = new HevyGetWorkoutEventsTool();
+    // $response = $hevy->__invoke('2024-12-03T00:00:00Z', '2025-01-01T00:00:00Z');
+    // dd($response);
 })->purpose('Get workouts from Hevy');
+
+Artisan::command('hey', function () {
+    // $messages = [new UserMessage('whats my best squat of all time')];
+    $chat = Chat::firstOrCreate([
+        'source_id' => 'test',
+        'type' => 'poe',
+    ]);
+    $message = $chat->messages()->updateOrCreate([
+        'source_id' => 'test1',
+        'role' => 'user',
+    ], [
+        'content' => 'heres my api key e4f121c1-bff0-441f-a065-62fc3fd5c571',
+    ]);
+    $messages = $chat->prismMessages();
+    // dd($messages);
+    $prism = Prism::text()
+            ->using(Provider::Gemini, 'gemini-2.0-flash')
+            ->withSystemPrompt(view('prompts.agents.fitness.coordinator'))
+            ->withTools([
+                new HevyGetWorkoutsByDateTool('test'),
+                new HevyGetWorkoutsByExerciseTool('test'),
+                new HevyGetRoutinesTool('test')
+            ])
+            ->withMaxSteps(5);
+    // dd($messages);
+    $answer = $prism->withMessages($messages->toArray())
+        ->asText();
+    $chat->messages()->updateOrCreate([
+        'source_id' => 'test1',
+        'role' => 'assistant',
+    ], [
+        'content' => $answer->text ?: 'An error occured finding your response. Please try again.',
+    ]);
+    dd($answer->text);
+})->purpose('Get workout events from Hevy');
