@@ -55,10 +55,10 @@ def load_and_split_docs(
                 # Update data with chunk information
                 extracted_data = extract_fn(chunk, meta)
                 data.update(extracted_data)
-                # Send to ragdoll service
-                # response = ragdoll.sendChunk(data)
+                Send to ragdoll service
+                response = ragdoll.sendChunk(data)
                 with (open(f".temp/outputs/chunk_{i}_{j}.log", "a")) as f:
-                    f.write(f"Response from Ragdoll: {data}\n")
+                    f.write(f"Response from Ragdoll: {response}\n")
             except Exception as e:
                 with (open(f"/temp/errors/error_{i}_{j}.log", "a")) as f:
                     f.write(f"Error sending to Ragdoll: {e}\n")
