@@ -10,6 +10,7 @@ from utils.load_and_split_docs import load_and_split_docs
 from loaders.drive_loader import load_drive_folder_docs
 from loaders.strong_csv_loader import load_strong_csv_docs
 from loaders.youtube_video_loader import load_youtube_video_transcript
+from loaders.youtube_channel_loader import load_youtube_channel_transcripts
 
 # Splitters
 from splitters.recursive_splitter import split_recursive_docs
@@ -93,8 +94,9 @@ def parse_strong_docs(csv_name: str):
     
     return jsonify({"message": "Documents are being processed."})
 
-# Google Drive folder
-@app.route('/api/youtube/<video_id>', methods=['POST'])
+
+# YouTube Video
+@app.route('/api/youtube/video/<video_id>', methods=['POST'])
 def parse_youtube_video_transcript(video_id: str):
     # Extract meta and tags from the request
     data = request.get_json()
@@ -114,6 +116,14 @@ def parse_youtube_video_transcript(video_id: str):
     )).start()    
     
     return jsonify({"message": "Documents are being processed."})
+
+# YouTube Channel
+@app.route('/api/youtube/channel/<channel_id>', methods=['POST'])
+def parse_youtube_video_transcript(video_id: str):
+    # Extract meta and tags from the request
+    data = request.get_json()
+    meta = data.get("meta", [])
+    tags = data.get("tags", {})
 
 
 # # Root route

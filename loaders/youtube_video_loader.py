@@ -21,7 +21,6 @@ def load_youtube_video_transcript(video_id: str):
     metadata = {
         "source": url,
         "video_id": video_id,
-        "title": "Some Video Title" # Need to find this
     }
 
     response = requests.get(url)
@@ -79,6 +78,8 @@ def load_youtube_video_transcript(video_id: str):
             metadata = metadata
         )]
     except ET.ParseError as e:
-            print("Failed to parse XML:", e)
-            print(response.text[:500])
-            raise Exception(f"Failed to parse XML: {e}")
+        print("Failed to parse XML:", e)
+        print(response.text[:500])
+        print ("Skipping video:", video_id)
+        return None
+        # raise Exception(f"Failed to parse XML: {e}")
