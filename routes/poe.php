@@ -10,6 +10,7 @@ use App\Tools\Hevy\HevyGetWorkoutsByDateTool;
 use App\Tools\Hevy\HevyGetWorkoutsByExerciseTool;
 use App\Tools\Hevy\HevyGetWorkoutsTool;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Prism\Prism\Enums\Provider;
 use Prism\Prism\Exceptions\PrismException;
@@ -21,7 +22,9 @@ Route::post('/hevy', function (Request $request) {
     try {
         // Extract the JSON data from the request
         $data = $request->json()->all();
-
+        Log::info('Received Hevy request', [
+            'data' => $data
+        ]);
         $chatId = $data['conversation_id'];
         $messageId = $data['message_id'];
         $userId = $data['user_id'];
@@ -36,15 +39,37 @@ Route::post('/hevy', function (Request $request) {
             ?->token;
 
         if (!$token) {
-            return new StreamedResponse(function () {
-                echo "event: error\n";
-                echo "data: " . json_encode([
-                    'text' => 'You need to link your Hevy account first.',
-                    'allow_retry' => false,
-                ]) . "\n\n";
+            return new StreamedResponse(function () use ($userId) {
+                // Disable buffering
+                if (ob_get_level()) ob_end_clean();
+                ini_set('zlib.output_compression', 0);
+                ini_set('output_buffering', 'off');
+                ini_set('implicit_flush', 1);
+                while (ob_get_level() > 0) {
+                    ob_end_flush();
+                }
                 flush();
-            }, 403, [
+
+                // Send the initial event metadata
+                echo "event: meta\n";
+                echo "data: " . json_encode([
+                    'content_type' => 'text/markdown',
+                    'suggested_replies' => false,
+                ]) . "\n\n";
+
+                echo "event: text\n";
+                echo "data: " . json_encode(['text' => "You need to link your Hevy account first. Your user ID is:\n" . $userId]) . "\n\n";
+                flush();
+
+                // Add this to tell Poe the response is finished
+                echo "event: done\n";
+                echo "data: {}\n\n";
+                flush(); // Ensure it's sent in chunks
+            }, 200, [
                 'Content-Type' => 'text/event-stream',
+                'Cache-Control' => 'no-cache',
+                'Connection' => 'keep-alive',
+                'X-Accel-Buffering' => 'no',
             ]);
         }
 
