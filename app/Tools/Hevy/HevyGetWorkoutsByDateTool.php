@@ -17,13 +17,12 @@ class HevyGetWorkoutsByDateTool extends Tool
     protected int $pageCount = 10;
     protected string $cacheKey;
 
-    public function __construct($cacheKey)
+    public function __construct($cacheKey, $apiKey)
     {
         $this->cacheKey = $cacheKey;
-        // $this->hevy = new HevyService();
+        $this->hevy = new HevyService($apiKey);
         $this->as('HevyGetWorkoutsByDateTool')
             ->for('searching for workouts on a single date or between two date ranges.')
-            ->withStringParameter('apiKey', 'a key used to authenticate requests for a user account to Hevy to retrieve workout data')
             ->withStringParameter('start', 'the start date for the search in ISO 8601 format (e.g. 2023-10-01T00:00:00Z)')
             ->withStringParameter('end', 'the end date for the search in ISO 8601 format (e.g. 2023-10-30T23:59:59Z)')
             ->using($this);
@@ -34,12 +33,9 @@ class HevyGetWorkoutsByDateTool extends Tool
             // )
     }
 
-    public function __invoke(string $apiKey, string $start, string $end): string
+    public function __invoke(string $start, string $end): string
     {
         try {
-            // initiate hevy with apikey
-            $this->hevy = new HevyService($apiKey);
-
             // Cache the results for 1 hour
             $workouts = collect(Cache::remember('workouts:' . $this->cacheKey, $seconds = 3600, function () {
             // This callback only runs if the key is not in the cache.

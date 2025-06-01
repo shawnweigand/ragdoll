@@ -16,13 +16,12 @@ class HevyGetWorkoutsByExerciseTool extends Tool
     protected int $pageCount = 10;
     protected string $cacheKey;
 
-    public function __construct($cacheKey)
+    public function __construct($cacheKey, $apiKey)
     {
         $this->cacheKey = $cacheKey;
-        // $this->hevy = new HevyService();
+        $this->hevy = new HevyService($apiKey);
         $this->as('HevyGetWorkoutsByExerciseTool')
             ->for('searching for workouts by the name of the exercise.')
-            ->withStringParameter('apiKey', 'a key used to authenticate requests for a user account to Hevy to retrieve workout data')
             ->withStringParameter('exercise', 'the name of the exercise to search for')
             ->using($this);
             // ->withArrayParameter(
@@ -32,12 +31,9 @@ class HevyGetWorkoutsByExerciseTool extends Tool
             // )
     }
 
-    public function __invoke(string $apiKey, string $exercise): string
+    public function __invoke(string $exercise): string
     {
         try {
-            // initiate hevy with apikey
-            $this->hevy = new HevyService($apiKey);
-
             // Cache the results for 1 hour
             $workouts = collect(Cache::remember('workouts:' . $this->cacheKey, $seconds = 3600, function () {
                 // This callback only runs if the key is not in the cache.

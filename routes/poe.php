@@ -32,7 +32,8 @@ Route::post('/hevy', function (Request $request) {
         $token = Token::where('user_id', $userId)
             ->where('type', 'poe')
             ->where('service', 'hevy')
-            ->first();
+            ->first()
+            ?->token;
 
         if (!$token) {
             return new StreamedResponse(function () {
@@ -47,7 +48,7 @@ Route::post('/hevy', function (Request $request) {
             ]);
         }
 
-        # Next -> add token to DB for user and use to create HevyService instance. Adjust prompt.
+        # Next -> add token to DB for user.
 
         // Create the chat and user message
         $chat = Chat::firstOrCreate([
@@ -68,9 +69,9 @@ Route::post('/hevy', function (Request $request) {
             ->using(Provider::Gemini, 'gemini-2.0-flash')
             ->withSystemPrompt(view('prompts.agents.fitness.coordinator'))
             ->withTools([
-                new HevyGetWorkoutsByDateTool($chatId),
-                new HevyGetWorkoutsByExerciseTool($chatId),
-                new HevyGetRoutinesTool($chatId),
+                new HevyGetWorkoutsByDateTool($chatId, $token),
+                new HevyGetWorkoutsByExerciseTool($chatId, $token),
+                new HevyGetRoutinesTool($chatId, $token),
             ])
             ->withMaxSteps(5);
 
@@ -231,7 +232,7 @@ Route::post('/test', function (Request $request) {
             ->withSystemPrompt(view('prompts.agents.fitness.coordinator'))
             ->withTools([
                 // new HevyGetWorkoutsByDateTool($chatId),
-                new HevyGetWorkoutsByExerciseTool($chatId),
+                // new HevyGetWorkoutsByExerciseTool($chatId),
             ])
             ->withMaxSteps(5);
         $answer = $prism->withMessages($messages)
