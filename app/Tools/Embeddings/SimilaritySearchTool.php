@@ -15,7 +15,7 @@ class SimilaritySearchTool extends Tool
     {
         $this->filters = $filters;
         $this->as('Similarity')
-            ->for('Useful when you need to search for things that are personal to the user that are not in the public domain. It revolves around searching their own documents. Determine that a document must be searched on your own. Confirmation is not required.')
+            ->for('Useful when you need to search for things that are only available within given documents. Determine that a document must be searched on your own. Confirmation is not required.')
             ->withStringParameter('q', 'Detailed search query. Best to search one topic at a time. Present in the form of a question. If not a question, convert to a question without prompting the user.')
             ->using($this);
     }
