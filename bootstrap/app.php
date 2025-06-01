@@ -17,6 +17,19 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
         using: function () {
+            // Load web routes
+            Route::middleware('web')
+                ->group(base_path('routes/web.php'));
+
+            // Load api routes
+            Route::middleware('api')
+                ->prefix('api')
+                ->group(base_path('routes/api.php'));
+
+            // Load console commands
+            require base_path('routes/console.php');
+
+            // Load poe routes
             Route::middleware(EnsurePoeTokenIsValid::class)
                 ->prefix('poe')
                 ->group(base_path('routes/poe.php'));
