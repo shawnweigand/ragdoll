@@ -15,13 +15,15 @@ class EnsurePoeTokenIsValid
      */
     public function handle(Request $request, Closure $next): Response
     {
+        $route = $request->route()->getName();
+
         $authHeader = $request->header('Authorization');
         if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
         $token = substr($authHeader, 7);
 
-        if ($token !== base64_decode(config('services.poe.token_encoded'))) {
+        if ($token !== base64_decode(config('services.poe.' . $route . '.token_encoded'))) {
             return response()->json(['error' => 'Forbidden'], 403);
         }
 

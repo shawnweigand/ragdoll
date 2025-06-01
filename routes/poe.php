@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Chat;
+use App\Models\Token;
 use App\Services\HevyService;
 use App\Tools\Agents\Fitness\LiftSearchTool;
 use App\Tools\Hevy\HevyGetRoutinesTool;
@@ -16,72 +17,7 @@ use Prism\Prism\Prism;
 use Prism\Prism\ValueObjects\Messages\UserMessage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-Route::get('/user', function (Request $request) {
-    return [
-        'user' => 'johnny test'
-    ];
-});
-
-Route::post('/test', function (Request $request) {
-    try
-    {
-        // Extract the JSON data from the request
-        $data = $request->json()->all();
-        $chatId = $data['conversation_id'];
-        $messageId = $data['message_id'];
-        $userId = $data['user_id'];
-        $queryData = $data['query'];
-        $content = end($queryData)['content'];
-
-        // Create the chat and user message
-        $chat = Chat::firstOrCreate([
-            'source_id' => $chatId,
-            'type' => 'poe',
-            // 'user_id' => $data['user_id'] ?? null,
-        ]);
-        $message = $chat->messages()->updateOrCreate([
-            'source_id' => $messageId,
-            'role' => 'user',
-        ], [
-            'content' => $content,
-        ]);
-
-        // Run the Hevy AI Agent
-        $messages = $chat->prismMessages()->toArray();
-        $prism = Prism::text()
-            ->using(Provider::Gemini, 'gemini-2.0-flash')
-            ->withSystemPrompt(view('prompts.agents.fitness.coordinator'))
-            ->withTools([
-                // new HevyGetWorkoutsByDateTool($chatId),
-                new HevyGetWorkoutsByExerciseTool($chatId),
-            ])
-            ->withMaxSteps(5);
-        $answer = $prism->withMessages($messages)
-            ->asText();
-        return response()->json([
-            'answer' => $answer->text,
-        ]);
-    }
-    catch (PrismException $e)
-    {
-        return response()->json([
-            'error' => 'PrismException',
-            'message' => $e->getMessage(),
-        ]);
-    }
-    catch (\Throwable $e)
-    {
-        return response()->json([
-            'error' => 'Throwable',
-            'message' => $e->getMessage(),
-        ]);
-    }
-    {
-
-    }
-});
-
-Route::post('/echo', function (Request $request) {
+Route::post('/hevy', function (Request $request) {
     try {
         // Extract the JSON data from the request
         $data = $request->json()->all();
@@ -91,6 +27,27 @@ Route::post('/echo', function (Request $request) {
         $userId = $data['user_id'];
         $queryData = $data['query'];
         $content = end($queryData)['content'];
+
+        // Make sure user has token
+        $token = Token::where('user_id', $userId)
+            ->where('type', 'poe')
+            ->where('service', 'hevy')
+            ->first();
+
+        if (!$token) {
+            return new StreamedResponse(function () {
+                echo "event: error\n";
+                echo "data: " . json_encode([
+                    'text' => 'You need to link your Hevy account first.',
+                    'allow_retry' => false,
+                ]) . "\n\n";
+                flush();
+            }, 403, [
+                'Content-Type' => 'text/event-stream',
+            ]);
+        }
+
+        # Next -> add token to DB for user and use to create HevyService instance. Adjust prompt.
 
         // Create the chat and user message
         $chat = Chat::firstOrCreate([
@@ -213,5 +170,91 @@ Route::post('/echo', function (Request $request) {
         }, 500, [
             'Content-Type' => 'text/event-stream',
         ]);
+    }
+})->name('hevy');
+
+###############
+### Testing ###
+###############
+
+Route::post('/user', function (Request $request) {
+    try
+    {
+        $data = $request->json()->all();
+        $user = $data['user_id'];
+        $token = Token::where('user_id', $user)
+            ->where('type', 'poe')
+            ->where('service', 'hevy')
+            ->first();
+        return [
+            'user' => $user,
+            'token' =>$token
+        ];
+    }
+    catch (Exception $e)
+    {
+        return response()->json([
+            'error' => 'Invalid JSON',
+            'message' => $e->getMessage(),
+        ], 400);
+    }
+});
+
+Route::post('/test', function (Request $request) {
+    try
+    {
+        // Extract the JSON data from the request
+        $data = $request->json()->all();
+        $chatId = $data['conversation_id'];
+        $messageId = $data['message_id'];
+        $userId = $data['user_id'];
+        $queryData = $data['query'];
+        $content = end($queryData)['content'];
+
+        // Create the chat and user message
+        $chat = Chat::firstOrCreate([
+            'source_id' => $chatId,
+            'type' => 'poe',
+            // 'user_id' => $data['user_id'] ?? null,
+        ]);
+        $message = $chat->messages()->updateOrCreate([
+            'source_id' => $messageId,
+            'role' => 'user',
+        ], [
+            'content' => $content,
+        ]);
+
+        // Run the Hevy AI Agent
+        $messages = $chat->prismMessages()->toArray();
+        $prism = Prism::text()
+            ->using(Provider::Gemini, 'gemini-2.0-flash')
+            ->withSystemPrompt(view('prompts.agents.fitness.coordinator'))
+            ->withTools([
+                // new HevyGetWorkoutsByDateTool($chatId),
+                new HevyGetWorkoutsByExerciseTool($chatId),
+            ])
+            ->withMaxSteps(5);
+        $answer = $prism->withMessages($messages)
+            ->asText();
+        return response()->json([
+            'answer' => $answer->text,
+        ]);
+    }
+    catch (PrismException $e)
+    {
+        return response()->json([
+            'error' => 'PrismException',
+            'message' => $e->getMessage(),
+        ]);
+    }
+    catch (\Throwable $e)
+    {
+        return response()->json([
+            'error' => 'Throwable',
+            'message' => $e->getMessage(),
+        ]);
+    }
+    {
+
     }
 });
