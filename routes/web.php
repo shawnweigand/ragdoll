@@ -4,6 +4,11 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\WorkOS\Http\Middleware\ValidateSessionWithWorkOS;
 
+// For liveness probe
+Route::get('/healthz', function () {
+    return response()->json(['status' => 'healthy', 'code' => 200], 200);
+});
+
 // Route::get('/', function () {
 //     return Inertia::render('welcome');
 // })->name('home');
