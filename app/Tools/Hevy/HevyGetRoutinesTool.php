@@ -12,22 +12,18 @@ class HevyGetRoutinesTool extends Tool
     protected int $pageCount = 10;
     protected string $cacheKey;
 
-    public function __construct($cacheKey)
+    public function __construct($cacheKey, $token)
     {
         $this->cacheKey = $cacheKey;
-        // $this->hevy = new HevyService();
+        $this->hevy = new HevyService($token);
         $this->as('HevyGetRoutinesTool')
-            ->for('searching for your personalized workout routines, these are typicalyy repeated workouts.')
-            ->withStringParameter('apiKey', 'a key used to authenticate requests for a user account to Hevy to retrieve workout data')
+            ->for('searching for your personalized workout routines, these are typically repeated workouts.')
             ->using($this);
     }
 
-    public function __invoke(string $apiKey): string
+    public function __invoke(): string
     {
         try {
-            // initiate hevy with apikey
-            $this->hevy = new HevyService($apiKey);
-
             // Cache the results for 1 hour
             $routines = collect(Cache::remember('routines:' . $this->cacheKey, $seconds = 3600, function () {
                 // This callback only runs if the key is not in the cache.
