@@ -1,0 +1,39 @@
+deployment:
+  replicas: 1
+  image:
+    repository: shawnweigand/prod
+    tag: ragdoll
+  registry:
+    imagePullSecret: docker-registry-secret
+serviceAccount:
+  name: docker-registry-serviceaccount
+  imagePullSecret: docker-registry-secret
+
+ingress:
+  host: ragdoll.it.com
+  tls: true
+
+issuer:
+  email: weigandshawn@gmail.com
+  server: https://acme-v02.api.letsencrypt.org/directory
+
+pdb:
+  minAvailable: 1
+
+config:
+  APP_NAME: "Ragdoll"
+  APP_URL: https://ragdoll.it.com
+  APP_ENV: production
+  SESSION_DRIVER: redis
+  DB_CONNECTION: pgsql
+  DB_PORT: 5432
+  DB_DATABASE: ragdoll
+  REDIS_CLIENT: phpredis
+  REDIS_PORT: 6379
+  # MAIL_MAILER: smtp
+  # MAIL_HOST: smtp.gmail.com
+  # MAIL_PORT: 587
+  # MAIL_USERNAME: shawnweigandapps@gmail.com
+  # MAIL_ENCRYPTION: tls
+  # MAIL_FROM_NAME: "${APP_NAME}"
+  # MAIL_FROM_ADDRESS: weigandshawn@gmail.com
