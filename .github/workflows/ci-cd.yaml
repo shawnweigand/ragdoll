@@ -1,0 +1,37 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+
+jobs:
+  checkout:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+  build:
+    needs: checkout
+    uses: shawnweigand/devops/.github/workflows/docker.yml@main
+    with:
+      tag: ragdoll
+    secrets: inherit
+
+  approval:
+    needs: build
+    uses: shawnweigand/devops/.github/workflows/approval.yml@main
+    with:
+      environment: production
+
+  deploy:
+    needs: approval
+    uses: shawnweigand/devops/.github/workflows/deployment.yml@main
+    with:
+      valuesPath: helm/values.yaml
+      helmRelease: ragdoll
+      namespace: ragdoll
+    secrets: inherit
