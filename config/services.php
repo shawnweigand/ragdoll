@@ -57,8 +57,7 @@ return [
 
     'poe' => [
         'hevy' => [
-            'token' => env('POE_API_TOKEN'),
-            'token_encoded' => env('POE_API_TOKEN_ENCODED'),
+            'token' => env('POE_HEVY_API_TOKEN')
         ]
     ]
 
