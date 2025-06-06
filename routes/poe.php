@@ -101,6 +101,7 @@ Route::post('/hevy', function (Request $request) {
                     return new UserMessage($message['content']);
             }
         })->toArray();
+
         $prism = Prism::text()
             ->using(Provider::Gemini, 'gemini-2.0-flash')
             ->withSystemPrompt(view('prompts.agents.fitness.coordinator'))
@@ -115,6 +116,9 @@ Route::post('/hevy', function (Request $request) {
         $answer = $prism->withMessages($messages)
             // ->asText();
             ->asStream();
+        Log::info('Answer:', [
+            'answer' => $answer,
+        ]);
 
         // return response()->json([
         //     'answer' => $answer
