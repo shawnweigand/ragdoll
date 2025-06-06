@@ -5,6 +5,7 @@ namespace App\Tools\Hevy;
 use App\Services\HevyService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Prism\Prism\Schema\ArraySchema;
 use Prism\Prism\Schema\NumberSchema;
 use Prism\Prism\Schema\ObjectSchema;
@@ -91,6 +92,11 @@ class HevyGetWorkoutsByDateTool extends Tool
                 'results' => $modifiedResults
             ])->render();
         } catch (\Exception $e) {
+            Log::error('HevyGetWorkoutsByDateTool error: ' . $e->getMessage(), [
+                'start' => $start,
+                'end' => $end,
+                'cache_key' => $this->cacheKey,
+            ]);
             return $e->getMessage();
         }
     }

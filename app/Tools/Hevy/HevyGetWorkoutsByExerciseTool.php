@@ -4,6 +4,7 @@ namespace App\Tools\Hevy;
 
 use App\Services\HevyService;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Prism\Prism\Schema\ArraySchema;
 use Prism\Prism\Schema\NumberSchema;
 use Prism\Prism\Schema\ObjectSchema;
@@ -85,6 +86,10 @@ class HevyGetWorkoutsByExerciseTool extends Tool
                 'results' => $modifiedResults
             ])->render();
         } catch (\Exception $e) {
+            Log::error('HevyGetWorkoutsByExerciseTool error: ' . $e->getMessage(), [
+                'exercise' => $exercise,
+                'cache_key' => $this->cacheKey,
+            ]);
             return $e->getMessage();
         }
 

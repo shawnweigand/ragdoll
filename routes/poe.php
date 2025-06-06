@@ -140,6 +140,9 @@ Route::post('/hevy', function (Request $request) {
 
             $fullResponse = '';
             foreach ($answer as $chunk) {
+                Log::info('Received chunk from Hevy AI', [
+                    'chunk' => $chunk,
+                ]);
                 $text = $chunk->text;
 
                 if ($text === '') continue;

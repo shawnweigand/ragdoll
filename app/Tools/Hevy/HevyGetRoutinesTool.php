@@ -4,6 +4,7 @@ namespace App\Tools\Hevy;
 
 use App\Services\HevyService;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Prism\Prism\Tool;
 
 class HevyGetRoutinesTool extends Tool
@@ -66,6 +67,9 @@ class HevyGetRoutinesTool extends Tool
                 'results' => $modifiedResults
             ])->render();
         } catch (\Exception $e) {
+            Log::error('HevyGetRoutinesTool error: ' . $e->getMessage(), [
+                'exception' => $e,
+            ]);
             return $e->getMessage();
         }
 
