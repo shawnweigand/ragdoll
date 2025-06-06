@@ -123,7 +123,7 @@ Route::post('/hevy', function (Request $request) {
         Log::info('Answer:', [
             'type' => get_class($answer),
             'is_iterable' => is_iterable($answer),
-            'answer' => iterator_to_array($answer),
+            // 'answer' => iterator_to_array($answer),
         ]);
 
         // return response()->json([
