@@ -151,6 +151,12 @@ Route::post('/hevy', function (Request $request) {
                 'content' => $fullResponse ?: 'An error occured finding your response. Please try again.',
             ]);
 
+            if ($fullResponse === '') {
+                echo "event: text\n";
+                echo "data: " . json_encode(['text' => "Sorry, I couldn't generate a response. Please try again later."]) . "\n\n";
+                flush();
+            }
+
             echo "event: suggested_reply\n";
             echo "data: " . json_encode(['text' => 'Can you tell me more?']) . "\n\n";
 
@@ -172,71 +178,29 @@ Route::post('/hevy', function (Request $request) {
 
     } catch (PrismException $e) {
         $errorMessage = "Text generation failed:" . $e->getMessage();
-        return new StreamedResponse(function () use ($errorMessage) {
-            // Disable buffering
-            if (ob_get_level()) ob_end_clean();
-            ini_set('zlib.output_compression', 0);
-            ini_set('output_buffering', 'off');
-            ini_set('implicit_flush', 1);
-            while (ob_get_level() > 0) {
-                ob_end_flush();
-            }
-            flush();
 
-            // Send the initial event metadata
-            echo "event: meta\n";
+        return response()->stream(function () use ($errorMessage) {
+            echo "event: error\n";
             echo "data: " . json_encode([
-                'content_type' => 'text/markdown',
-                'suggested_replies' => false,
+                'text' => $errorMessage,
+                'allow_retry' => true,
             ]) . "\n\n";
-
-            echo "event: text\n";
-            echo "data: " . json_encode(['text' => $errorMessage]) . "\n\n";
             flush();
-
-            // Add this to tell Poe the response is finished
-            echo "event: done\n";
-            echo "data: {}\n\n";
-            flush(); // Ensure it's sent in chunks
-        }, 200, [
+        }, 500, [
             'Content-Type' => 'text/event-stream',
-            'Cache-Control' => 'no-cache',
-            'Connection' => 'keep-alive',
-            'X-Accel-Buffering' => 'no',
         ]);
     } catch (\Throwable $e) {
         $errorMessage = "An error occurred on line " . $e->getLine() . ": " . $e->getMessage();
-        return new StreamedResponse(function () use ($errorMessage) {
-            // Disable buffering
-            if (ob_get_level()) ob_end_clean();
-            ini_set('zlib.output_compression', 0);
-            ini_set('output_buffering', 'off');
-            ini_set('implicit_flush', 1);
-            while (ob_get_level() > 0) {
-                ob_end_flush();
-            }
-            flush();
 
-            // Send the initial event metadata
-            echo "event: meta\n";
+        return response()->stream(function () use ($errorMessage) {
+            echo "event: error\n";
             echo "data: " . json_encode([
-                'content_type' => 'text/markdown',
-                'suggested_replies' => false,
+                'text' => $errorMessage,
+                'allow_retry' => true,
             ]) . "\n\n";
-
-            echo "event: text\n";
-            echo "data: " . json_encode(['text' => $errorMessage]) . "\n\n";
             flush();
-
-            // Add this to tell Poe the response is finished
-            echo "event: done\n";
-            echo "data: {}\n\n";
-            flush(); // Ensure it's sent in chunks
-        }, 200, [
+        }, 500, [
             'Content-Type' => 'text/event-stream',
-            'Cache-Control' => 'no-cache',
-            'Connection' => 'keep-alive',
-            'X-Accel-Buffering' => 'no',
         ]);
     }
 })->name('hevy');
