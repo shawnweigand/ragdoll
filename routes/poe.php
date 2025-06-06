@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 use Prism\Prism\Enums\Provider;
 use Prism\Prism\Exceptions\PrismException;
 use Prism\Prism\Prism;
+use Prism\Prism\ValueObjects\Messages\AssistantMessage;
 use Prism\Prism\ValueObjects\Messages\UserMessage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -76,20 +77,30 @@ Route::post('/hevy', function (Request $request) {
         # Next -> add token to DB for user.
 
         // Create the chat and user message
-        $chat = Chat::firstOrCreate([
-            'source_id' => $chatId,
-            'type' => 'poe',
-            // 'user_id' => $data['user_id'] ?? null,
-        ]);
-        $message = $chat->messages()->updateOrCreate([
-            'source_id' => $messageId,
-            'role' => 'user',
-        ], [
-            'content' => $content,
-        ]);
+        // $chat = Chat::firstOrCreate([
+        //     'source_id' => $chatId,
+        //     'type' => 'poe',
+        //     // 'user_id' => $data['user_id'] ?? null,
+        // ]);
+        // $message = $chat->messages()->updateOrCreate([
+        //     'source_id' => $messageId,
+        //     'role' => 'user',
+        // ], [
+        //     'content' => $content,
+        // ]);
 
         // Run the Hevy AI Agent
-        $messages = $chat->prismMessages()->toArray();
+        // $messages = $chat->prismMessages()->toArray();
+        $messages = collect($queryData)->map(function ($message) {
+            switch ($message['role']) {
+                case 'user':
+                    return new UserMessage($message['content']);
+                case 'bot':
+                    return new AssistantMessage($message['content']);
+                default:
+                    return new UserMessage($message['content']);
+            }
+        })->toArray();
         $prism = Prism::text()
             ->using(Provider::Gemini, 'gemini-2.0-flash')
             ->withSystemPrompt(view('prompts.agents.fitness.coordinator'))
@@ -109,7 +120,7 @@ Route::post('/hevy', function (Request $request) {
         //     'answer' => $answer
         // ]);
 
-        return new StreamedResponse(function () use ($chat, $answer, $messageId) {
+        return new StreamedResponse(function () use ($answer, $messageId) {
             // Disable buffering
             ob_end_clean();
             ini_set('zlib.output_compression', 0);
@@ -144,12 +155,12 @@ Route::post('/hevy', function (Request $request) {
                 }
             }
 
-            $chat->messages()->updateOrCreate([
-                'source_id' => $messageId,
-                'role' => 'assistant',
-            ], [
-                'content' => $fullResponse ?: 'An error occured finding your response. Please try again.',
-            ]);
+            // $chat->messages()->updateOrCreate([
+            //     'source_id' => $messageId,
+            //     'role' => 'assistant',
+            // ], [
+            //     'content' => $fullResponse ?: 'An error occured finding your response. Please try again.',
+            // ]);
 
             if ($fullResponse === '') {
                 echo "event: text\n";
