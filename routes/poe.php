@@ -102,6 +102,10 @@ Route::post('/hevy', function (Request $request) {
             }
         })->toArray();
 
+        Log::info('Messages for Hevy AI Agent', [
+            'messages' => $messages,
+        ]);
+
         $prism = Prism::text()
             ->using(Provider::Gemini, 'gemini-2.0-flash')
             ->withSystemPrompt(view('prompts.agents.fitness.coordinator'))
@@ -117,7 +121,9 @@ Route::post('/hevy', function (Request $request) {
             // ->asText();
             ->asStream();
         Log::info('Answer:', [
-            'answer' => $answer,
+            'type' => get_class($answer),
+            'is_iterable' => is_iterable($answer),
+            'answer' => iterator_to_array($answer),
         ]);
 
         // return response()->json([
