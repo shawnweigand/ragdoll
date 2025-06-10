@@ -19,6 +19,9 @@ use Prism\Prism\ValueObjects\Messages\AssistantMessage;
 use Prism\Prism\ValueObjects\Messages\UserMessage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
+
+// wrap in a finally to alsways send done response
+// https://chatgpt.com/c/6843280b-0898-8004-9266-9a8485da55e8
 Route::post('/hevy', function (Request $request) {
     try {
         // Extract the JSON data from the request
