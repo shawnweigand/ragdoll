@@ -12,6 +12,8 @@ serviceAccount:
 ingress:
   host: ragdoll.it.com
   tls: true
+  externalPort: 80
+  internalPort: 8080
 
 issuer:
   email: weigandshawn@gmail.com
