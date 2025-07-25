@@ -32,7 +32,9 @@ def load_youtube_video_transcript(video_id: str):
 
     match = re.search(r'"captionTracks":(\[.*?\])', html_content)
     if not match:
-        raise Exception("Could not find captionTracks in HTML")
+        print("Could not find captionTracks in HTML")
+        print ("Skipping video:", video_id)
+        return None
 
     caption_tracks_json = match.group(1)
     caption_tracks = json.loads(caption_tracks_json)
@@ -79,7 +81,7 @@ def load_youtube_video_transcript(video_id: str):
         )]
     except ET.ParseError as e:
         print("Failed to parse XML:", e)
-        print(response.text[:500])
+        # print(response.text[:500])
         print ("Skipping video:", video_id)
         return None
         # raise Exception(f"Failed to parse XML: {e}")

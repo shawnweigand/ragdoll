@@ -119,11 +119,25 @@ def parse_youtube_video_transcript(video_id: str):
 
 # YouTube Channel
 @app.route('/api/youtube/channel/<channel_id>', methods=['POST'])
-def parse_youtube_video_transcript(video_id: str):
+def parse_youtube_channel_transcripts(channel_id: str):
     # Extract meta and tags from the request
     data = request.get_json()
     meta = data.get("meta", [])
     tags = data.get("tags", {})
+
+    # Load and split documents in a separate thread
+    threading.Thread(target=load_and_split_docs, args=(
+        None,                              #Arg: parent_id
+        "YouTubeVideo",                    #Arg: document_type
+        load_youtube_channel_transcripts,  #Arg: load_fn
+        [channel_id],                      #Arg: load_params
+        split_recursive_docs,              #Arg: split_fn
+        youtube_video_extractor,           #Arg: extract_fn
+        meta,                              #Arg: meta
+        tags                               #Arg: tags
+    )).start()    
+    
+    return jsonify({"message": "Documents are being processed."})
 
 
 # # Root route

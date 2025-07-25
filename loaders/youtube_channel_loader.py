@@ -1,6 +1,7 @@
 from services.YoutubeService import YoutubeService
 from loaders.youtube_video_loader import load_youtube_video_transcript
 from typing import List, Optional
+import sys
 
 def load_youtube_channel_transcripts(channel_id: str, video_ids: Optional[List[str]] = None):
     """
@@ -15,7 +16,7 @@ def load_youtube_channel_transcripts(channel_id: str, video_ids: Optional[List[s
 
     yt = YoutubeService()
 
-    videos = yt.getChannelVideos('UCI5d0aR9R0AWgTRUkQ-K3UA')
+    videos = yt.getChannelVideos(channel_id)
 
     vids = [
         {
@@ -24,7 +25,7 @@ def load_youtube_channel_transcripts(channel_id: str, video_ids: Optional[List[s
             "date": video["snippet"]["publishTime"],
             "channel_id": channel_id
         }
-        for video in videos[:10]
+        for video in videos
         if video_ids is None or video["id"]["videoId"] in video_ids
     ]
 
@@ -36,4 +37,5 @@ def load_youtube_channel_transcripts(channel_id: str, video_ids: Optional[List[s
             doc[0].metadata = doc[0].metadata | vid
             transcripts.append(doc[0])
 
+    print(f"Loaded {len(transcripts)} transcripts from channel {channel_id}", flush=True)
     return transcripts

@@ -5,7 +5,7 @@ from utils.load_and_split_docs import load_and_split_docs
 
 channel_id = "UCI5d0aR9R0AWgTRUkQ-K3UA"
 
-video_ids = ["TkW82LDAYeM"]
+video_ids = ["qHMjcNSlWj0", "cpduTHUYlcg"]
 
 # videos = load_youtube_channel_transcripts(channel_id)
 
@@ -16,11 +16,13 @@ meta = [
     "date",
     "channel_id"
 ]
-tags = {}
+tags = {
+    "category": "YouTube",
+}
 
 load_and_split_docs(
         channel_id,                       #Arg: parent_id
-        "YoutubeVideo",                   #Arg: document_type
+        "YouTubeVideo",                   #Arg: document_type
         load_youtube_channel_transcripts, #Arg: load_fn
         [channel_id, video_ids],          #Arg: load_params
         split_recursive_docs,             #Arg: split_fn
